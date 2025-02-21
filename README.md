@@ -16,5 +16,7 @@ cmake -B ./build -S .
 ```
 
 # Build Options
-PLATFORM_TYPE = CL | CUDA
-BUILD_TESTS   = ON | OFF
+| Parameter     |       |        |
+| :------------ | :---: | :----: |
+| PLATFORM_TYPE |  CL   |  CUDA  |
+| BUILD_TESTS   |  ON   |  OFF   |

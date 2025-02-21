@@ -4,4 +4,21 @@ project(Kizuna VERSION 1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+if(NOT DEFINED PLATFORM_TYPE)
+    set(PLATFORM_TYPE "CL")
+endif()
+
+add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
+include_directories(${CMAKE_PROJECT_NAME} 
+    PUBLIC ${CMAKE_SOURCE_DIR}/inc 
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/core/inc)
+
+# Configure Modules
 add_subdirectory(src/core)
+
+# Link 3rd Party Libraries
+if(PLATFORM_TYPE STREQUAL "CUDA")
+    message("CUDA not yet implemented.")
+else()
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/OpenCL.lib)
+endif()

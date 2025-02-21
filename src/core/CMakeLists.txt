@@ -1,7 +1,16 @@
 project(core VERSION 1.0)
 
-add_executable(${CMAKE_PROJECT_NAME} main.cpp)
+# Compile Library
+add_library(${PROJECT_NAME} src/core.cpp)
+target_include_directories(${PROJECT_NAME} 
+    PUBLIC ${CMAKE_SOURCE_DIR}/inc
+    PUBLIC inc
+)
 
-include_directories(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/inc)
+# Link to App
+target_link_libraries(${CMAKE_PROJECT_NAME} ${PROJECT_NAME})
 
-target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/OpenCL.lib)
+# Kernel Program files
+if(PLATFORM_TYPE STREQUAL "CL")
+    file(COPY cl/math.cl DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${PROJECT_NAME})
+endif()

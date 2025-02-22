@@ -12,6 +12,7 @@ cl::CommandQueue Core_Bond::_queue;
 cl::Kernel Core_Bond::_add;
 cl::Kernel Core_Bond::_sub;
 cl::Kernel Core_Bond::_mul;
+cl::Kernel Core_Bond::_tra;
 
 bool Core_Bond::Init() {
     // Load OpenCL Supported Hardware
@@ -46,6 +47,7 @@ bool Core_Bond::Init() {
     _add = cl::Kernel(core_program, "add");
     _sub = cl::Kernel(core_program, "sub");
     _mul = cl::Kernel(core_program, "mul");
+    _tra = cl::Kernel(core_program, "transpose");
 
     // Initialize Queue
     _queue = cl::CommandQueue(context, device);

@@ -22,6 +22,7 @@ public:
     static cl::Kernel& Add() { return _add; }
     static cl::Kernel& Sub() { return _sub; }
     static cl::Kernel& Mul() { return _mul; }
+    static cl::Kernel& Transpose() { return _tra; }
 
 private:
     static bool LoadPlatform();
@@ -36,6 +37,7 @@ private:
     static cl::Kernel _add;
     static cl::Kernel _sub;
     static cl::Kernel _mul;
+    static cl::Kernel _tra;
 };
 
 #endif /* CORE */

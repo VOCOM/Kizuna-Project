@@ -21,41 +21,68 @@ int main(int argc, char** argv) {
     // Warm-up Execution
     m1 + m2;
 
+    // Identity Test
+    std::cout << "Identity test\n";
+    Matrix<int> I = Matrix<int>::I(5);
+    std::cout << "Result:\n";
+    I.Print(1);
+    std::cout << "\n";
+
+    // Transpose Test
+    Matrix<int> t(2, 3);
+    for (int i = 0; i < t.Size(); i++) t[i] = i;
+    std::cout << "Transpose test\n";
+    auto t1 = t.Transpose();
+    std::cout << "Result:\n";
+    t.Print(2);
+    std::cout << "\n";
+    t1.Print(2);
+    std::cout << "\n";
+
     // Addition Test
-    now = std::chrono::steady_clock::now();
-    Matrix<int> m5 = m1 + m2;
-    period = std::chrono::steady_clock::now() - now;
     std::cout << "Additon test\n";
+    now = std::chrono::steady_clock::now();
+    auto m5 = m1 + m2;
+    period = std::chrono::steady_clock::now() - now;
     std::cout << "GPU: " << std::chrono::duration_cast<std::chrono::microseconds>(period).count() << "us\n";
     std::cout << "Result:\n";
     m5.Print();
+    std::cout << "\n";
 
     // Subtraction Test
-    now = std::chrono::steady_clock::now();
-    Matrix<int> m6 = m1 - m2;
-    period = std::chrono::steady_clock::now() - now;
     std::cout << "Subtraction test\n";
+    now = std::chrono::steady_clock::now();
+    auto m6 = m1 - m2;
+    period = std::chrono::steady_clock::now() - now;
     std::cout << "GPU: " << std::chrono::duration_cast<std::chrono::microseconds>(period).count() << "us\n";
     std::cout << "Result:\n";
     m6.Print();
+    std::cout << "\n";
 
-    Matrix<int> m3(3, 5), m4(5, 3);
+    Matrix<int> m3(3, 5);
     for (int i = 0;i < m3.Size();i++) {
-        m3[i] = i;
-        m4[i] = i + 1;
+        m3[i] = 1;
+        // m4[i] = 1;
     }
 
+    Matrix<int> m4 = Matrix<int>::I(5);
+
     // Multiplication Test
-    now = std::chrono::steady_clock::now();
-    Matrix<int> m7 = m3 * m4;
-    period = std::chrono::steady_clock::now() - now;
     std::cout << "Multiplication test\n";
+    now = std::chrono::steady_clock::now();
+    auto m7 = 6 * m4;
+    period = std::chrono::steady_clock::now() - now;
     std::cout << "GPU: " << std::chrono::duration_cast<std::chrono::microseconds>(period).count() << "us\n";
+    std::cout << "A:\n";
+    m3.Print();
+    std::cout << "\n";
+    std::cout << "B:\n";
+    m4.Print();
+    std::cout << "\n";
     std::cout << "Result:\n";
     m7.Print();
+    std::cout << "\n";
 
-    // Identity Test
     // Inverse Test
-    // Transpose Test
     // Special Orthographic Test
 }

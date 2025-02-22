@@ -15,6 +15,7 @@ public:
     static const cl::CommandQueue& Queue() { return _queue; }
     static cl::Buffer& Buffer(int idx) {
         if (idx > MAX_BUFFER_COUNT)throw new std::exception();
+        _queue.enqueueFillBuffer(_buffers[idx], 0, 0, sizeof(int) * MAX_BUFFER_SIZE);
         return _buffers[idx];
     }
     static int MAX_THREADS() { return _max_threads; }
@@ -22,7 +23,9 @@ public:
     static cl::Kernel& Add() { return _add; }
     static cl::Kernel& Sub() { return _sub; }
     static cl::Kernel& Mul() { return _mul; }
-    static cl::Kernel& Transpose() { return _tra; }
+    static cl::Kernel& GeMM() { return _gemm; }
+    static cl::Kernel& Determinant2() { return _determinant2; }
+    static cl::Kernel& Transpose() { return _transpose; }
 
 private:
     static bool LoadPlatform();
@@ -37,7 +40,9 @@ private:
     static cl::Kernel _add;
     static cl::Kernel _sub;
     static cl::Kernel _mul;
-    static cl::Kernel _tra;
+    static cl::Kernel _gemm;
+    static cl::Kernel _determinant2;
+    static cl::Kernel _transpose;
 };
 
 #endif /* CORE */

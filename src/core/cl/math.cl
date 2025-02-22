@@ -1,40 +1,52 @@
-void kernel add(global const int *V1, global const int *V2, global int *V3,
-                const int N) {
-  const int threadID = get_global_id(0);
+void kernel add(global const double *M1, global const double *M2,
+                global double *M3) {
+  const int ID = get_global_id(0);
   const int size = get_global_size(0);
-  int step = (N / size);
 
-  for (int i = threadID; i < N; i += step)
-    V3[i] = V1[i] + V2[i];
+  M3[ID] = M1[ID] + M2[ID];
 }
 
-void kernel sub(global const int *V1, global const int *V2, global int *V3,
-                const int N) {
-  const int threadID = get_global_id(0);
-  const int threadCount = get_global_size(0);
-  int step = (N / threadCount);
+void kernel sub(global const double *M1, global const double *M2,
+                global double *M3) {
+  const int ID = get_global_id(0);
+  const int size = get_global_size(0);
 
-  for (int i = threadID; i < N; i += step)
-    V3[i] = V1[i] - V2[i];
+  M3[ID] = M1[ID] - M2[ID];
+}
+
+// Scalar Multiplication
+void kernel mul(global double *M1, const double V) {
+  const int threadID = get_global_id(0);
+  const int size = get_global_size(0);
+
+  M1[threadID] *= V;
 }
 
 // Naive General Matrix Multiplication [GeMM]
 // [MxN] = [MxK] * [KxN]
-void kernel mul(const int M, const int N, const int K, global const int *M1,
-                global const int *M2, global int *M3) {
-  const int rowID = get_global_id(0);
-  const int colID = get_global_id(1);
+void kernel gemm(global const double *M1, global const double *M2,
+                 global double *M3, const int K) {
+  const int M1rowID = get_global_id(0);
+  const int M2colID = get_global_id(1);
+
+  const int M = get_global_size(0);
+  const int N = get_global_size(1);
 
   for (int k = 0; k < K; k++)
-    M3[rowID + colID * M] += M1[k * M + rowID] * M2[k + colID * K];
+    M3[M1rowID * N + M2colID] += M1[M1rowID * K + k] * M2[k * N + M2colID];
 }
 
-void kernel transpose(global const int *M1, global int *M2) {
+void kernel determinant2(global const double *M1, global double *M2) {
+  const int ID = get_global_id(0);
+
+  M2[ID] = M1[ID] * M1[ID + 3] - M1[ID + 1] * M1[ID + 2];
+}
+
+void kernel transpose(global const double *M1, global double *M2) {
   const int rowID = get_global_id(0);
   const int colID = get_global_id(1);
   const int rows = get_global_size(0);
   const int cols = get_global_size(1);
 
-  // printf("Cell [%d, %d]\n", rowID, colID);
   M2[colID * rows + rowID] = M1[rowID * cols + colID];
 }

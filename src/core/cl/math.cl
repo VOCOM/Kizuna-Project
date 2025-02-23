@@ -35,11 +35,20 @@ void kernel gemm(global const double *M1, global const double *M2,
   for (int k = 0; k < K; k++)
     M3[M1rowID * N + M2colID] += M1[M1rowID * K + k] * M2[k * N + M2colID];
 }
-
-void kernel determinant2(global const double *M1, global double *M2) {
+void kernel cofactor(global const double *M1, global double *M2) {
   const int ID = get_global_id(0);
+  const int inputID = ID * 4;
+  const int sign = ID % 2 == 0 ? 1 : -1;
 
-  M2[ID] = M1[ID] * M1[ID + 3] - M1[ID + 1] * M1[ID + 2];
+  M2[ID] = sign *
+           (M1[inputID] * M1[inputID + 3] - M1[inputID + 1] * M1[inputID + 2]);
+}
+
+void kernel determinant(global const double *M1, global double *M2) {
+  const int ID = get_global_id(0);
+  const int inputID = ID * 4;
+
+  M2[ID] = M1[inputID] * M1[inputID + 3] - M1[inputID + 1] * M1[inputID + 2];
 }
 
 void kernel transpose(global const double *M1, global double *M2) {

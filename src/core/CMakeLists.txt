@@ -2,9 +2,9 @@ project(core VERSION 1.0)
 
 # Compile Library
 add_library(${PROJECT_NAME} src/core.cpp)
-target_include_directories(${PROJECT_NAME} 
-    PUBLIC ${CMAKE_SOURCE_DIR}/inc
+target_include_directories(${PROJECT_NAME}
     PUBLIC inc
+    PUBLIC ${CMAKE_SOURCE_DIR}/inc
 )
 
 # Link to App

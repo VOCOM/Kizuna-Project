@@ -1,24 +1,7 @@
 #include <iostream>
-#include <chrono>
 
+#include <timer.hpp>
 #include <matrix.hpp>
-
-class Timer {
-public:
-    using Clock = std::chrono::steady_clock;
-
-    inline void Start() { _start = Clock::now(); }
-    inline void Stop() { period = Clock::now() - _start; }
-
-    inline long long DurationNS() const { return std::chrono::duration_cast<std::chrono::nanoseconds>(period).count(); }
-    inline long long DurationUS() const { return std::chrono::duration_cast<std::chrono::microseconds>(period).count(); }
-    inline long long DurationMS() const { return std::chrono::duration_cast<std::chrono::milliseconds>(period).count(); }
-
-private:
-
-    std::chrono::time_point<Clock> _start;
-    std::chrono::duration<long long, std::nano> period;
-};
 
 int main(int argc, char** argv) {
     if (Core_Bond::Init() == false) {
@@ -28,27 +11,23 @@ int main(int argc, char** argv) {
 
     Timer timer;
 
-    Matrix m1(3, 3, 2.2), m2(3, 3, 5.5), m3(2, 2, 2.0);
-    m3[0] = 4;
-    m3[1] = 7;
-    m3[2] = 2;
-    m3[3] = 6;
+    Matrix<double> x(3, 3, 2.0);
+    double m = 2, c = 1;
 
-    // Warm-up Execution
-    m1 + m2;
-    m1 - m2;
+    auto y = m * x + c;
+    std::cout << "Bias: " << c << '\n';
+    std::cout << "Gradient: " << m << '\n';
+    std::cout << "Input:\n"; x.Print(2);
+    std::cout << "Output:\n"; y.Print(2);
+    std::cout << '\n';
 
-    // Inverse Test
-    std::cout << "\nInverse test\n";
-    timer.Start();
-    auto m5 = m3 * m3.Inverse();
-    timer.Stop();
-    std::cout << "GPU: " << timer.DurationUS() << "us\n";
-    std::cout << "\nResult:\n";
-    m5.Print(4);
+    Matrix<double> A(3, 3);
+    for (auto& i : A) i = std::rand() % 10;
+    auto A_inv = A.Inverse();
 
-    std::cout << "\nDeterminant: " << m5.Determinant();
-    std::cout << "\nOrthoganal: " << (m5.IsOrthoganal() ? "Yes" : "No");
-
-    // Special Orthographic Test
+    std::cout << "A:\n"; A.Print(1);
+    std::cout << "Cofactor:\n"; A.Cofactor().Print(5);
+    std::cout << "Determinant: " << A.Determinant() << "\n";
+    std::cout << "Inverse:\n"; A_inv.Print(4);
+    std::cout << "Proof:\n"; (A * A_inv).Print(3);
 }

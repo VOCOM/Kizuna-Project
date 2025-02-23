@@ -24,7 +24,8 @@ public:
     static cl::Kernel& Sub() { return _sub; }
     static cl::Kernel& Mul() { return _mul; }
     static cl::Kernel& GeMM() { return _gemm; }
-    static cl::Kernel& Determinant2() { return _determinant2; }
+    static cl::Kernel& Cofactor() { return _cofactor; }
+    static cl::Kernel& Determinant() { return _determinant; }
     static cl::Kernel& Transpose() { return _transpose; }
 
 private:
@@ -41,7 +42,8 @@ private:
     static cl::Kernel _sub;
     static cl::Kernel _mul;
     static cl::Kernel _gemm;
-    static cl::Kernel _determinant2;
+    static cl::Kernel _cofactor;
+    static cl::Kernel _determinant;
     static cl::Kernel _transpose;
 };
 

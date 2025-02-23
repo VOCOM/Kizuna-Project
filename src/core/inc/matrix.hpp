@@ -7,24 +7,31 @@
 
 #include <core.hpp>
 
+// Class Template
 template<typename T>
 class Matrix {
 public:
+    // Matrix Properties
     inline int Rows() const { return _row; }
     inline int Cols() const { return _col; }
     inline int Size() const { return _data.size(); }
     inline bool IsSquare() const { return _row == _col; }
-    inline bool IsOrthoganal() const { return static_cast<int>(Determinant()) == 1; }
+    inline bool IsInvertible() const { return static_cast<int>(Determinant()) != 0; }
+    inline bool IsOrthoganal() const { return std::abs(static_cast<int>(Determinant())) == 1; }
 
     // Matrix Properties
-    inline double Determinant() const;
+    double Determinant() const;
 
+    // Move Operator
     Matrix<T> operator=(const Matrix<T>& rhs);
 
     // Access Operators
     T& operator[](int idx);
 
-    // Arithmetic Operators
+    // Scalar Arithmetic Operators
+    Matrix<T> operator+(T& rhs) { return *this + Matrix<T>(_row, _col, rhs); }
+
+    // Matrix Arithmetic Operators
     Matrix<T> operator+(Matrix& rhs);
     Matrix<T> operator-(Matrix& rhs);
     Matrix<T> operator*(Matrix& rhs);
@@ -32,33 +39,62 @@ public:
     // Matrix Operations
     Matrix<T> Inverse() const;
     Matrix<T> Transpose() const;
+    Matrix<T> Cofactor() const;
 
     // Iterators
     inline T* begin() { return &(_data[0]); }
     inline T* end() { return &(_data[Size() - 1]); }
     inline T* cbegin() const { return begin(); }
 
+    // Display
     void Print(int w = 3, int p = 1) const;
 
+    Matrix<T> SubMatrix(int rowStart, int rowEnd, int colStart, int colEnd) const;
+
     // Constructors
-    inline Matrix(int row = 1, int col = 1, T val = 0) :_row(row), _col(col), _data(row* col) {
+    inline Matrix(int row = 1, int col = 1, T val = 0) : _row(row), _col(col), _data(row* col) {
         if (val != 0) std::fill(_data.begin(), _data.end(), val);
     }
     static Matrix<T> I(int sz);
 
 private:
-    Matrix<T> CoFactor() const;
-
     int _row, _col;
     std::vector<T> _data;
 };
 
+// Matrix Properties
+template<typename T>
+double Matrix<T>::Determinant() const {
+    if (IsSquare() == false) throw new std::exception("Non-square matrix has no determinant!");
+    if (_row > 3) throw new std::exception("No determinant implementation for matrix of rank 4 and above!");
+
+    if (_row == 2) return _data[0] * _data[3] - _data[1] * _data[2];
+
+    Matrix<T> cofactor = Cofactor();
+    double det = 0;
+    for (int i = 0; i < _col; i++)
+        det += _data[i] * cofactor[i];
+    return det;
+}
+
+// Move Operator
+template<typename T>
+inline Matrix<T> Matrix<T>::operator=(const Matrix<T>& rhs) {
+    _row = rhs.Rows();
+    _col = rhs.Cols();
+    _data.resize(rhs.Size());
+    _data = std::move(rhs._data);
+    return *this;
+}
+
+// Access Operators
 template<typename T>
 inline T& Matrix<T>::operator[](int idx) {
-    if (idx >= _row * _col) throw new std::exception("Index out of range!");
+    if (idx >= Size()) throw new std::exception("Index out of range!");
     return _data[idx];
 }
 
+// Matrix Arithmetic Operators
 template<typename T>
 inline Matrix<T> Matrix<T>::operator+(Matrix& rhs) {
     if ((_row != rhs.Rows()) || (_col != rhs.Cols())) throw new std::exception("Matrix shape mismatch!");
@@ -140,10 +176,15 @@ inline Matrix<T> Matrix<T>::operator*(Matrix& rhs) {
     return output;
 }
 
+// Matrix Operations
 template<typename T>
 inline Matrix<T> Matrix<T>::Inverse() const {
+    if (_row == 1) return _data[0];
     if (IsSquare() == false) throw new std::exception("Cannot inverse non-square matrix!");
-    if (Determinant() == 0) throw new std::exception("Matrix is non-invertible!");
+    if (_row > 3) throw new std::exception("No inverse implementation for matrix of dimension 4 and above!");
+
+    double determinant = Determinant();
+    if (IsInvertible() == false) throw new std::exception("Matrix is non-invertible!");
 
     // Use simple formula
     if (_row == 2) {
@@ -152,14 +193,12 @@ inline Matrix<T> Matrix<T>::Inverse() const {
         inv[1] = -_data[1];
         inv[2] = -_data[2];
         inv[3] = _data[0];
-        return (1 / Determinant()) * inv;
+        return (1 / determinant) * inv;
     }
 
-    Matrix<T> inv;
-
-    return inv;
+    auto adjoint = Cofactor().Transpose();
+    return (1 / determinant) * adjoint;
 }
-
 template<typename T>
 inline Matrix<T> Matrix<T>::Transpose() const {
     int size = Size();
@@ -181,99 +220,40 @@ inline Matrix<T> Matrix<T>::Transpose() const {
 
     return output;
 }
-
 template<typename T>
-inline Matrix<T> Matrix<T>::I(int sz) {
-    Matrix<T> Identity(sz, sz);
+inline Matrix<T> Matrix<T>::Cofactor() const {
+    if (IsSquare() == false) throw new std::exception("No cofactor for non-square matrix!");
 
-    for (int i = 0;i < sz;i++)
-        for (int j = 0;j < sz;j++)
-            if (i == j) Identity[i * sz + j] = 1;
+    int size = Size();
+    auto queue = Core_Bond::Queue();
+    auto buffer1 = Core_Bond::Buffer(0);
+    auto buffer2 = Core_Bond::Buffer(1);
 
-    return Identity;
-}
+    std::vector<T> buf(size * 4);
+    for (int i = 0; i < _row; i++)
+        for (int j = 0; j < _col; j++) {
+            int idx = (i * _col + j) * 4;
+            buf[idx + 0] = _data[(i == 0 ? 3 : 0) + (j == 0 ? 1 : 0)];
+            buf[idx + 1] = _data[(i == 0 ? 3 : 0) + (j != 2 ? 2 : 1)];
+            buf[idx + 2] = _data[(i != 2 ? 3 : 0) + (j == 0 ? 4 : 3)];
+            buf[idx + 3] = _data[(i != 2 ? 3 : 0) + (j != 2 ? 5 : 4)];
+        }
 
-template<typename T>
-inline double Matrix<T>::Determinant() const {
-    if (IsSquare() == false) throw new std::exception("Non-square matrix has no determinant!");
+    queue.enqueueWriteBuffer(buffer1, CL_TRUE, 0, sizeof(T) * buf.size(), &(buf[0]));
 
-    if (_row == 2) return _data[0] * _data[3] - _data[1] * _data[2];
-    if (_row == 3) {
-        auto cofactor = CoFactor();
+    auto kernel = Core_Bond::Cofactor();
+    kernel.setArg(0, buffer1);
+    kernel.setArg(1, buffer2);
 
-    }
+    queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(size));
+    queue.finish();
 
-    return T();
-}
-
-template<typename T>
-inline Matrix<T> Matrix<T>::CoFactor() const {
-    if (_row != _col) throw new std::exception("No cofactor for non-square matrix!");
-
-    std::vector<T> tmp;
-    // [x,x,x]
-    // [x,a,b]
-    // [x,c,d]
-    tmp.push_back(_data[4]);
-    tmp.push_back(_data[5]);
-    tmp.push_back(_data[7]);
-    tmp.push_back(_data[8]);
-
-    // [x,x,x]
-    // [a,x,b]
-    // [c,x,d]
-    tmp.push_back(_data[3]);
-    tmp.push_back(_data[5]);
-    tmp.push_back(_data[6]);
-    tmp.push_back(_data[8]);
-
-    // [x,x,x]
-    // [a,b,x]
-    // [c,d,x]
-    tmp.push_back(_data[3]);
-    tmp.push_back(_data[4]);
-    tmp.push_back(_data[6]);
-    tmp.push_back(_data[7]);
-
-    tmp.push_back(_data[4]);
-    tmp.push_back(_data[5]);
-    tmp.push_back(_data[7]);
-    tmp.push_back(_data[8]);
-
-    tmp.push_back(_data[4]);
-    tmp.push_back(_data[5]);
-    tmp.push_back(_data[7]);
-    tmp.push_back(_data[8]);
-
-    tmp.push_back(_data[4]);
-    tmp.push_back(_data[5]);
-    tmp.push_back(_data[7]);
-    tmp.push_back(_data[8]);
-
-    tmp.push_back(_data[4]);
-    tmp.push_back(_data[5]);
-    tmp.push_back(_data[7]);
-    tmp.push_back(_data[8]);
-
-    tmp.push_back(_data[4]);
-    tmp.push_back(_data[5]);
-    tmp.push_back(_data[7]);
-    tmp.push_back(_data[8]);
-
-    tmp.push_back(_data[4]);
-    tmp.push_back(_data[5]);
-    tmp.push_back(_data[7]);
-    tmp.push_back(_data[8]);
-
-    Matrix<T> cofactor(3, 3);
+    Matrix<T> cofactor(_row, _col);
+    queue.enqueueReadBuffer(buffer2, CL_TRUE, 0, sizeof(T) * size, cofactor.begin());
     return cofactor;
 }
-template<typename T>
-inline Matrix<T> Matrix<T>::operator=(const Matrix<T>& rhs) {
-    _data = std::move(rhs._data);
-    return *this;
-}
 
+// Display
 template<typename T>
 inline void Matrix<T>::Print(int w, int p) const {
     std::cout << std::fixed << std::setprecision(p);
@@ -287,18 +267,44 @@ inline void Matrix<T>::Print(int w, int p) const {
 }
 
 template<typename T>
-inline Matrix<T>& operator*(T lhs, Matrix<T>& rhs) {
+inline Matrix<T> Matrix<T>::SubMatrix(int rowStart, int rowEnd, int colStart, int colEnd) const {
+    int newRows = rowEnd - rowStart;
+    int newCols = colEnd - colStart;
+    if ((newRows > _row) || (newCols > _col)) throw new std::exception("Sub matrix dimensions out of range!");
+
+    Matrix<T> sub(newRows, newCols);
+    for (int i = 0; i < newRows; i++)
+        for (int j = 0; j < newCols; j++)
+            sub[i * newCols + j] = _data[(rowStart + i) * newCols + colStart + j];
+    return sub;
+}
+
+// Constructors
+template<typename T>
+inline Matrix<T> Matrix<T>::I(int sz) {
+    Matrix<T> Identity(sz, sz);
+
+    for (int i = 0;i < sz;i++)
+        for (int j = 0;j < sz;j++)
+            if (i == j) Identity[i * sz + j] = 1.0;
+
+    return Identity;
+}
+
+// Integer Operators
+template<typename T>
+inline Matrix<T>& operator*(double lhs, Matrix<T>& rhs) {
     int size = rhs.Size();
     auto queue = Core_Bond::Queue();
     auto buffer1 = Core_Bond::Buffer(0);
 
-    queue.enqueueWriteBuffer(buffer1, CL_TRUE, 0, sizeof(T) * rhs.Size(), rhs.begin());
+    queue.enqueueWriteBuffer(buffer1, CL_TRUE, 0, sizeof(T) * size, rhs.begin());
 
     auto kernel = Core_Bond::Mul();
     kernel.setArg(0, buffer1);
     kernel.setArg(1, lhs);
 
-    queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(rhs.Size()));
+    queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(size));
     queue.finish();
 
     queue.enqueueReadBuffer(buffer1, CL_TRUE, 0, sizeof(T) * size, rhs.begin());

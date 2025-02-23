@@ -8,12 +8,11 @@ if(NOT DEFINED PLATFORM_TYPE)
     set(PLATFORM_TYPE "CL")
 endif()
 
+# Define Target
 add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
-include_directories(${CMAKE_PROJECT_NAME} 
-    PUBLIC ${CMAKE_SOURCE_DIR}/inc 
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/core/inc)
 
 # Configure Modules
+add_subdirectory(src/utility)
 add_subdirectory(src/core)
 
 # Link 3rd Party Libraries

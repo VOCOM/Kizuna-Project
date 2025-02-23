@@ -13,7 +13,8 @@ cl::Kernel Core_Bond::_add;
 cl::Kernel Core_Bond::_sub;
 cl::Kernel Core_Bond::_mul;
 cl::Kernel Core_Bond::_gemm;
-cl::Kernel Core_Bond::_determinant2;
+cl::Kernel Core_Bond::_cofactor;
+cl::Kernel Core_Bond::_determinant;
 cl::Kernel Core_Bond::_transpose;
 
 bool Core_Bond::Init() {
@@ -50,7 +51,8 @@ bool Core_Bond::Init() {
     _sub = cl::Kernel(core_program, "sub");
     _mul = cl::Kernel(core_program, "mul");
     _gemm = cl::Kernel(core_program, "gemm");
-    _determinant2 = cl::Kernel(core_program, "determinant2");
+    _cofactor = cl::Kernel(core_program, "cofactor");
+    _determinant = cl::Kernel(core_program, "determinant");
     _transpose = cl::Kernel(core_program, "transpose");
 
     // Initialize Queue

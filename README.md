@@ -1,14 +1,13 @@
 # Kizuna Project
 Hub of Specialized AI for home IoT
 
-| Modules |                       |
-| :-----: | :-------------------: |
-| Core    | Hardware Acceleration |
-|         | Matrix Suite          |
-| Models  | Unsupervised          |
-|         | kMeans                |
-| Utility | Timer                 |
-| Test    | Test Suite            |
+| Modules | Category              |        |
+| :------ | :-------------------- | :----- |
+| Core    | Hardware Acceleration |        |
+|         | Matrix Suite          |        |
+| Models  | Unsupervised          | kMeans |
+| Utility | Timer                 |        |
+| Test    | Test Suite            |        |
 
 # Build
 ```

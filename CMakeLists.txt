@@ -15,6 +15,10 @@ add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
 add_subdirectory(src/utility)
 add_subdirectory(src/core)
 
+if(BUILD_TEST STREQUAL "ON")
+    add_subdirectory(src/test)
+endif()
+
 # Link 3rd Party Libraries
 if(PLATFORM_TYPE STREQUAL "CUDA")
     message("CUDA not yet implemented.")

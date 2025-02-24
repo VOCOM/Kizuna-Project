@@ -3,6 +3,8 @@
 #include <timer.hpp>
 #include <matrix.hpp>
 
+#include <matrix_test.hpp>
+
 int main(int argc, char** argv) {
     if (Core_Bond::Init() == false) {
         std::cout << "Failed to initialize OpenCL\n";
@@ -20,14 +22,4 @@ int main(int argc, char** argv) {
     std::cout << "Input:\n"; x.Print(2);
     std::cout << "Output:\n"; y.Print(2);
     std::cout << '\n';
-
-    Matrix<double> A(3, 3);
-    for (auto& i : A) i = std::rand() % 10;
-    auto A_inv = A.Inverse();
-
-    std::cout << "A:\n"; A.Print(1);
-    std::cout << "Cofactor:\n"; A.Cofactor().Print(5);
-    std::cout << "Determinant: " << A.Determinant() << "\n";
-    std::cout << "Inverse:\n"; A_inv.Print(4);
-    std::cout << "Proof:\n"; (A * A_inv).Print(3);
 }

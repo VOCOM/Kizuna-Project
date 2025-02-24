@@ -268,14 +268,14 @@ inline void Matrix<T>::Print(int w, int p) const {
 
 template<typename T>
 inline Matrix<T> Matrix<T>::SubMatrix(int rowStart, int rowEnd, int colStart, int colEnd) const {
-    int newRows = rowEnd - rowStart;
-    int newCols = colEnd - colStart;
+    int newRows = rowEnd - rowStart + 1;
+    int newCols = colEnd - colStart + 1;
     if ((newRows > _row) || (newCols > _col)) throw new std::exception("Sub matrix dimensions out of range!");
 
     Matrix<T> sub(newRows, newCols);
     for (int i = 0; i < newRows; i++)
         for (int j = 0; j < newCols; j++)
-            sub[i * newCols + j] = _data[(rowStart + i) * newCols + colStart + j];
+            sub[i * newCols + j] = _data[(rowStart + i) * _col + colStart + j];
     return sub;
 }
 

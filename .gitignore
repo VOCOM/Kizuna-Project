@@ -35,3 +35,6 @@
 
 # Directories
 /build
+
+# Configurations
+*.ini

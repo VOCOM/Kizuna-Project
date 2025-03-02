@@ -9,13 +9,9 @@ cl::Buffer Core_Bond::_buffers[Core_Bond::MAX_BUFFER_COUNT];
 int Core_Bond::_max_threads = 64;
 
 cl::CommandQueue Core_Bond::_queue;
-cl::Kernel Core_Bond::_add;
-cl::Kernel Core_Bond::_sub;
-cl::Kernel Core_Bond::_mul;
-cl::Kernel Core_Bond::_gemm;
-cl::Kernel Core_Bond::_cofactor;
-cl::Kernel Core_Bond::_determinant;
-cl::Kernel Core_Bond::_transpose;
+
+cl::Kernel Core_Bond::_euclid;
+cl::Kernel Core_Bond::_centroid;
 
 bool Core_Bond::Init() {
     // Load OpenCL Supported Hardware
@@ -37,7 +33,7 @@ bool Core_Bond::Init() {
     // Compile Core Program
     cl::Context context(device);
     cl::Program core_program;
-    if (BuildProgram(context, device, ".\\core\\math.cl", core_program) == false) {
+    if (BuildProgram(context, device, ".\\core\\core.cl", core_program) == false) {
         std::cout << "Error Building Program\n";
         return false;
     }
@@ -47,13 +43,8 @@ bool Core_Bond::Init() {
         _buffers[i] = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int) * MAX_BUFFER_SIZE);
 
     // Load Kernel Functions
-    _add = cl::Kernel(core_program, "add");
-    _sub = cl::Kernel(core_program, "sub");
-    _mul = cl::Kernel(core_program, "mul");
-    _gemm = cl::Kernel(core_program, "gemm");
-    _cofactor = cl::Kernel(core_program, "cofactor");
-    _determinant = cl::Kernel(core_program, "determinant");
-    _transpose = cl::Kernel(core_program, "transpose");
+    _euclid = cl::Kernel(core_program, "euclideanDistance");
+    _centroid = cl::Kernel(core_program, "centroid");
 
     // Initialize Queue
     _queue = cl::CommandQueue(context, device);

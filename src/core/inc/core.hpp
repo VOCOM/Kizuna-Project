@@ -8,7 +8,7 @@
 class Core_Bond {
 public:
     static const int MAX_BUFFER_COUNT = 5;
-    static const int MAX_BUFFER_SIZE = 1024;
+    static const int MAX_BUFFER_SIZE = 0xFFFFFF;
 
 public:
     static bool Init();
@@ -20,13 +20,8 @@ public:
     }
     static int MAX_THREADS() { return _max_threads; }
 
-    static cl::Kernel& Add() { return _add; }
-    static cl::Kernel& Sub() { return _sub; }
-    static cl::Kernel& Mul() { return _mul; }
-    static cl::Kernel& GeMM() { return _gemm; }
-    static cl::Kernel& Cofactor() { return _cofactor; }
-    static cl::Kernel& Determinant() { return _determinant; }
-    static cl::Kernel& Transpose() { return _transpose; }
+    static cl::Kernel& Distance() { return _euclid; }
+    static cl::Kernel& Centroid() { return _centroid; }
 
 private:
     static bool LoadPlatform();
@@ -38,13 +33,9 @@ private:
     static int _max_threads;
 
     static cl::CommandQueue _queue;
-    static cl::Kernel _add;
-    static cl::Kernel _sub;
-    static cl::Kernel _mul;
-    static cl::Kernel _gemm;
-    static cl::Kernel _cofactor;
-    static cl::Kernel _determinant;
-    static cl::Kernel _transpose;
+
+    static cl::Kernel _euclid;
+    static cl::Kernel _centroid;
 };
 
 #endif /* CORE */

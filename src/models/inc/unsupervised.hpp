@@ -1,9 +1,8 @@
 #ifndef UNSUPERVISED
 #define UNSUPERVISED
 
-class Kmeans {
-public:
-private:
-};
+#include <data.hpp>
+
+std::vector<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>> KMeans(int k, DataTable& input);
 
 #endif /* UNSUPERVISED */

@@ -1,0 +1,20 @@
+---
+Language: Cpp
+
+ColumnLimit: 0
+TabWidth: 2
+UseTab: AlignWithSpaces
+
+DerivePointerAlignment: False
+PointerAlignment: Left
+
+ArrayInitializerAlignmentStyle: Right
+
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlines: Right
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: false
+...

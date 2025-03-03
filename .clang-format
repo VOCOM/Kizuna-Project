@@ -9,12 +9,13 @@ DerivePointerAlignment: False
 PointerAlignment: Left
 
 ArrayInitializerAlignmentStyle: Right
-
-AlignConsecutiveAssignments: false
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortBlocksOnASingleLine: Always
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlines: Right
 AlignConsecutiveAssignments:
   Enabled: true
-  AcrossEmptyLines: true
+  AcrossEmptyLines: false
   AcrossComments: false
 ...

@@ -16,6 +16,7 @@ endif()
 add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
 
 # Configure Modules
+add_subdirectory(src/webserver)
 add_subdirectory(src/core)
 add_subdirectory(src/utility)
 add_subdirectory(src/models)

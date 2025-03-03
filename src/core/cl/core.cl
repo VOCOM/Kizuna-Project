@@ -32,7 +32,6 @@ kernel void centroid(global const double* points, global const int* indexes, glo
       centroids[id * N + n] += points[n * M + m];
   }
 
-  for(int n = 0; n < N; n++){
+  for(int n = 0; n < N; n++)
     centroids[id * N + n] /= count; 
-  }
 }

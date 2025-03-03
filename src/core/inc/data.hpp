@@ -7,24 +7,27 @@
 
 class DataTable {
 public:
-    int Rows() { return table.rows(); }
-    int Cols() { return table.cols(); }
-    int Size() { return table.size(); }
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& Data() { return table; }
+	using DynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
 
-    auto GetRow(int i) { return table.row(i); }
-    auto GetCol(int i) { return table.col(i); }
+	// Data Information
+	inline int Rows() { return table.rows(); }
+	inline int Cols() { return table.cols(); }
+	inline int Size() { return table.size(); }
+	void Info();
 
-    void AddFeature(const std::string featureName, std::vector<double>& values);
+	// Accessors
+	auto& operator[](int index);
+	inline auto GetRow(int index) { return table.row(index); }
+	inline auto GetCol(int index) { return table.col(index); }
+	inline DynamicMatrix& Data() { return table; }
 
-    void Info();
+	void AddFeature(const std::string featureName, std::vector<double>& values);
 
-    DataTable() {}
+	DataTable() {}
 
 private:
-    Eigen::RowVector<std::string, Eigen::Dynamic> header;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> table;
-
+	Eigen::RowVector<std::string, Eigen::Dynamic> header;
+	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> table;
 };
 
 #endif /* DATA */

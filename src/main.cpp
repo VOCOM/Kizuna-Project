@@ -7,23 +7,36 @@
 
 #include <harmony.hpp>
 #include <kizuna.hpp>
-#include <unsupervised.hpp>
 #include <webserver.hpp>
+
+std::string GetCommand(std::string& buffer) {
+	int idx = buffer.find_first_of(' ');
+	return idx != std::string::npos ? buffer.substr(0, idx) : buffer;
+}
+std::vector<std::string> GetParameters(std::string& buffer) {
+	std::vector<std::string> params;
+	int idx = buffer.find_last_of(' ');
+
+	while (idx != std::string::npos) {
+		params.push_back(buffer.substr(idx + 1, buffer.size()));
+		buffer.erase(idx, buffer.size());
+		idx = buffer.find_last_of(' ');
+	}
+
+	return params;
+}
 
 void ConfigCommand(std::string& buffer) {
 	std::string filter;
-	std::vector<std::string> params;
-
+	auto params = GetParameters(buffer);
+	if (params.size() > 0) filter = params.back();
 	Configuration::ListConfig(filter);
 }
 void HelpCommand() {
 }
 
 int main(int argc, char** argv) {
-	if (Kizuna::Init() == false) {
-		std::cout << "Failed to initialize OpenCL\n";
-		return 1;
-	}
+	Configuration::LoadConfig();
 
 	WebServer server;
 	server.Start();
@@ -32,14 +45,15 @@ int main(int argc, char** argv) {
 	harmony.Start();
 
 	bool running = true;
-	std::string buffer;
+	std::string buffer, command;
 	while (running) {
 		std::getline(std::cin, buffer);
 		std::transform(buffer.begin(), buffer.end(), buffer.begin(), std::tolower);
 
-		if (!buffer.find("config")) ConfigCommand(buffer);
-		if (buffer == "help") HelpCommand();
-		if (buffer == "exit") running = false;
+		command = GetCommand(buffer);
+		if (command == "config") ConfigCommand(buffer);
+		if (command == "help") HelpCommand();
+		if (command == "exit") running = false;
 	}
 	// Timer timer;
 	// DataTable data;

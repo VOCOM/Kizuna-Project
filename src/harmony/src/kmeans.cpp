@@ -6,7 +6,7 @@
 #include <vector>
 
 // Modules
-#include <kizuna.hpp>
+#include <harmony.hpp>
 
 #if DEBUG
 #include <timer.hpp>
@@ -15,7 +15,7 @@
 using namespace Eigen;
 
 void LoadCluster(const int start, const int end, const int N, const int dim, cl::Buffer index, cl::Buffer points, Clusters& clusters) {
-	auto queue = Kizuna::Queue();
+	auto queue = Harmony::Queue();
 	for (int i = start, c = 0; i < end; i++) {
 		queue.enqueueReadBuffer(index, CL_TRUE, sizeof(int) * i, sizeof(int), &c);
 		RowVector<double, Dynamic> point(dim);
@@ -28,8 +28,9 @@ void LoadCluster(const int start, const int end, const int N, const int dim, cl:
 }
 
 Clusters KMeans(int k, DataTable& input) {
-	if (input.Size() * k > Kizuna::MAX_BUFFER_SIZE)
-		throw new std::exception("Insufficient Buffer Space!");
+	// Check from within Harmony
+	// if (input.Size() * k > Harmony::BufferInfo().second)
+	// 	throw new std::exception("Insufficient Buffer Space!");
 
 	const int maxEntries = input.Rows();
 	const int dimensions = input.Cols();
@@ -45,10 +46,10 @@ Clusters KMeans(int k, DataTable& input) {
 	}
 
 	// Get Master Queue
-	auto queue   = Kizuna::Queue();
-	auto buffer1 = Kizuna::Buffer(0); // Points        [double]
-	auto buffer2 = Kizuna::Buffer(1); // Centroids     [double]
-	auto buffer3 = Kizuna::Buffer(2); // Cluster Index [int]
+	auto queue   = Harmony::Queue();
+	auto buffer1 = Harmony::Buffer(0); // Points        [double]
+	auto buffer2 = Harmony::Buffer(1); // Centroids     [double]
+	auto buffer3 = Harmony::Buffer(2); // Cluster Index [int]
 
 	// Fill Buffer 1 with points [double]
 	queue.enqueueWriteBuffer(buffer1, CL_TRUE, 0, sizeof(double) * pts.count(), pts.data());
@@ -64,14 +65,14 @@ Clusters KMeans(int k, DataTable& input) {
 	// Compute clusters
 	bool converged = false;
 	while (!converged) {
-		auto buffer4 = Kizuna::Buffer(3); // New Centroids [double]
+		auto buffer4 = Harmony::Buffer(3); // New Centroids [double]
 
 		// Fill Buffer 2 with centroids [double]
 		queue.enqueueWriteBuffer(buffer2, CL_TRUE, 0, sizeof(double) * centroids.count(), centroids.data());
 
 		// Select Euclidean Distance Kernel
 		// (Points, Centroids, Index, Dimensions, K)
-		auto kernel = Kizuna::Distance();
+		auto kernel = Harmony::Distance();
 		kernel.setArg(0, buffer1);
 		kernel.setArg(1, buffer2);
 		kernel.setArg(2, buffer3);
@@ -84,7 +85,7 @@ Clusters KMeans(int k, DataTable& input) {
 
 		// Select Centroid Kernel
 		// (Points, Dimensions, Index, New Centroids)
-		kernel = Kizuna::Centroid();
+		kernel = Harmony::Centroid();
 		kernel.setArg(0, buffer1);
 		kernel.setArg(1, buffer3);
 		kernel.setArg(2, buffer4);

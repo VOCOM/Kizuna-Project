@@ -7,6 +7,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <kizuna.hpp>
+
 using namespace std::chrono_literals;
 
 // Public Methods
@@ -22,19 +24,23 @@ void WebServer::Start() {
 	}
 }
 
-WebServer::WebServer(std::string port) : port(port) {
-	try {
-		std::stoi(port);
-	} catch (const std::exception) {
-		std::cout << "Invalid port number.\n";
-		return;
-	}
+void WebServer::Restart() {
+	CloseServer();
+	Configuration::LoadConfig();
+	Start();
+}
 
+WebServer::WebServer() {
 	// Initialize Winsock
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData)) {
 		std::cout << "Error initializing WS2_32.dll.\n";
 		return;
 	}
+
+	// Load configuration
+	auto config = Configuration::Config["webserver"];
+	port        = config["port"];
+	nodename    = config["nodename"];
 
 	ZeroMemory(&hints, sizeof(hints));
 	hints.ai_family   = AF_INET;
@@ -43,7 +49,7 @@ WebServer::WebServer(std::string port) : port(port) {
 	hints.ai_flags    = AI_PASSIVE;
 
 	// Resolve local IP Address and Port for server
-	if (GetAddrInfo(NULL, port.c_str(), &hints, &result)) {
+	if (GetAddrInfo(nodename.c_str(), port.c_str(), &hints, &result)) {
 		std::cout << "Error starting webserver.\n";
 		WSACleanup();
 		return;
@@ -71,7 +77,7 @@ WebServer::WebServer(std::string port) : port(port) {
 }
 
 WebServer::~WebServer() {
-	std::cout << "Shutting down webserver.\n";
+	std::cout << "Shutting down webserver...\n";
 	listening = false;
 	closesocket(clientSocket);
 	WSACleanup();
@@ -120,7 +126,6 @@ void WebServer::CloseServer() {
 void WebServer::AcceptConnection() {
 	clientSocket = accept(listenSocket, NULL, NULL);
 	if (clientSocket != INVALID_SOCKET) return;
-	std::cout << "Failed to accept incoming connection.\n";
 	closesocket(listenSocket);
 	WSACleanup();
 }

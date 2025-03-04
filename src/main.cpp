@@ -1,15 +1,26 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #include <timer.hpp>
 
-#include <core.hpp>
+#include <harmony.hpp>
+#include <kizuna.hpp>
 #include <unsupervised.hpp>
 #include <webserver.hpp>
 
+void ConfigCommand(std::string& buffer) {
+	std::string filter;
+	std::vector<std::string> params;
+
+	Configuration::ListConfig(filter);
+}
+void HelpCommand() {
+}
+
 int main(int argc, char** argv) {
-	if (Core_Bond::Init() == false) {
+	if (Kizuna::Init() == false) {
 		std::cout << "Failed to initialize OpenCL\n";
 		return 1;
 	}
@@ -17,12 +28,18 @@ int main(int argc, char** argv) {
 	WebServer server;
 	server.Start();
 
+	Harmony harmony;
+	harmony.Start();
+
 	bool running = true;
 	std::string buffer;
 	while (running) {
-		std::cin >> buffer;
+		std::getline(std::cin, buffer);
 		std::transform(buffer.begin(), buffer.end(), buffer.begin(), std::tolower);
-		running = buffer != "exit";
+
+		if (!buffer.find("config")) ConfigCommand(buffer);
+		if (buffer == "help") HelpCommand();
+		if (buffer == "exit") running = false;
 	}
 	// Timer timer;
 	// DataTable data;

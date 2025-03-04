@@ -17,6 +17,7 @@ add_library(${PROJECT_NAME} ${SRC_FILES})
 target_include_directories(${PROJECT_NAME}
     PUBLIC inc
     PUBLIC ${CMAKE_SOURCE_DIR}/inc
+    PUBLIC ${CMAKE_SOURCE_DIR}/src/kizuna/inc
 )
 
 # Link to App

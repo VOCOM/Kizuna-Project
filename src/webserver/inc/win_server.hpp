@@ -10,8 +10,9 @@
 class WebServer {
 public:
 	void Start();
+	void Restart();
 
-	WebServer(std::string port = "27015");
+	WebServer();
 	~WebServer();
 
 private:
@@ -27,6 +28,7 @@ private:
 
 	bool listening = false;
 	std::string port;
+	std::string nodename;
 	std::thread server;
 
 	struct addrinfo hints;

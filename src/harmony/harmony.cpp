@@ -1,10 +1,11 @@
-#include "harmony.hpp"
+#include "harmony/harmony.hpp"
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-#include <kizuna.hpp>
+#include "harmony.hpp"
+#include <kizuna/kizuna.hpp>
 
 bool Harmony::running;
 std::thread Harmony::mainThread;
@@ -19,15 +20,43 @@ cl::CommandQueue Harmony::queue;
 cl::Kernel Harmony::euclid;
 cl::Kernel Harmony::centroid;
 
+void Harmony::Info() {
+	std::cout << "Submodule " << Name << "\n";
+	std::cout << "Status " << (running ? "Active" : "Inactive") << "\n";
+}
 void Harmony::Start() {
 	running    = true;
 	mainThread = std::thread(&Harmony::Loop);
+	std::cout << "Harmony online\n";
+}
+void Harmony::Stop() {
+	running = false;
+	if (mainThread.joinable()) mainThread.join();
+}
+void Harmony::Restart() {
+	Stop();
+	Start();
+}
+void Harmony::LoadConfiguration() {
+	std::string param;
+	auto& config = Configuration::Config["harmony"];
+
+	param           = config["max_cpu_threads"];
+	MAX_CPU_THREADS = param == "auto" ? std::thread::hardware_concurrency() : std::stoi(param);
+
+	param           = config["buffer_size"];
+	MAX_BUFFER_SIZE = std::stoi(param, nullptr, param.find('x') == std::string::npos ? 10 : 16);
+
+	param            = config["buffer_count"];
+	MAX_BUFFER_COUNT = std::stoi(param);
+
+	// Initialize buffers
+	while (buffers.size()) buffers.pop_back();
+	for (int i = 0; i < MAX_BUFFER_COUNT; i++)
+		buffers.push_back(cl::Buffer(GetContext(), CL_MEM_READ_WRITE, sizeof(int) * MAX_BUFFER_SIZE));
 }
 
 Harmony::Harmony() {
-	// Load Configuration
-	LoadConfiguration();
-
 	// Load OpenCL Supported Hardware
 	if (LoadPlatform() == false) {
 		std::cout << "Error registering computing platform.\n";
@@ -47,10 +76,6 @@ Harmony::Harmony() {
 	// Initialize Queue
 	queue = cl::CommandQueue(context, device);
 
-	// Initialize buffers
-	for (int i = 0; i < MAX_BUFFER_COUNT; i++)
-		buffers.push_back(cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(int) * MAX_BUFFER_SIZE));
-
 	// Compile Core Program
 	cl::Program core_program;
 	if (BuildProgram(context, device, ".\\harmony\\math.cl", core_program) == false) {
@@ -63,8 +88,7 @@ Harmony::Harmony() {
 	centroid = cl::Kernel(core_program, "centroid");
 }
 Harmony::~Harmony() {
-	running = false;
-	if (mainThread.joinable()) mainThread.join();
+	Stop();
 }
 
 void Harmony::Loop() {
@@ -113,18 +137,4 @@ bool Harmony::BuildProgram(cl::Context& context, cl::Device& device, std::string
 	cl::Program::Sources source{kernel_code.str()};
 	program = cl::Program(context, source);
 	return program.build(device) == CL_SUCCESS;
-}
-
-void Harmony::LoadConfiguration() {
-	std::string param;
-	auto& config = Configuration::Config["harmony"];
-
-	param           = config["max_cpu_threads"];
-	MAX_CPU_THREADS = param == "auto" ? std::thread::hardware_concurrency() : std::stoi(param);
-
-	param           = config["buffer_size"];
-	MAX_BUFFER_SIZE = std::stoi(param, nullptr, param.find('x') == std::string::npos ? 10 : 16);
-
-	param            = config["buffer_count"];
-	MAX_BUFFER_COUNT = std::stoi(param);
 }

@@ -1,4 +1,4 @@
-#include <unsupervised.hpp>
+#include <harmony/unsupervised.hpp>
 
 // C++ Headers
 #include <iostream>
@@ -9,7 +9,7 @@
 #include <harmony.hpp>
 
 #if DEBUG
-#include <timer.hpp>
+#include <utility/timer.hpp>
 #endif
 
 using namespace Eigen;

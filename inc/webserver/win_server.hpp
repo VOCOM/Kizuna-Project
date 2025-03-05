@@ -7,13 +7,19 @@
 #include <string>
 #include <thread>
 
-class WebServer {
+#include <kizuna/kizuna.hpp>
+
+class WebServer : public Submodule {
 public:
-	void Start();
-	void Restart();
+	// Submodule Interface
+	virtual void Info();
+	virtual void Start();
+	virtual void Stop();
+	virtual void Restart();
+	virtual void LoadConfiguration();
 
 	WebServer();
-	~WebServer();
+	virtual ~WebServer();
 
 private:
 	void StartServer();
@@ -24,6 +30,7 @@ private:
 
 private:
 	static const uint64_t BUFFER_SIZE = 0xFFFF;
+	const char* Name                  = "Webserver";
 	WSADATA wsaData;
 
 	bool listening = false;

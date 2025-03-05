@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <timer.hpp>
+#include <utility/timer.hpp>
 
 #include <harmony.hpp>
 #include <kizuna.hpp>
@@ -26,23 +26,29 @@ std::vector<std::string> GetParameters(std::string& buffer) {
 	return params;
 }
 
-void ConfigCommand(std::string& buffer) {
+void ConfigCommand(std::vector<std::string>& params) {
 	std::string filter;
-	auto params = GetParameters(buffer);
 	if (params.size() > 0) filter = params.back();
 	Configuration::ListConfig(filter);
 }
-void HelpCommand() {
+void HelpCommand() {}
+void InfoCommand(std::vector<std::string>& params) {
+	std::string type;
+	if (params.size() > 0) type = params.back();
+	if (type == "submodules") {
+		for (auto& submodule : Kizuna::submodules) {
+			std::cout << "\n";
+			submodule->Info();
+		}
+		std::cout << "\n";
+	}
 }
 
 int main(int argc, char** argv) {
 	Configuration::LoadConfig();
 
-	WebServer server;
-	server.Start();
-
-	Harmony harmony;
-	harmony.Start();
+	Kizuna::LoadSubmodule(std::make_shared<Harmony>());
+	Kizuna::LoadSubmodule(std::make_shared<WebServer>());
 
 	bool running = true;
 	std::string buffer, command;
@@ -51,10 +57,14 @@ int main(int argc, char** argv) {
 		std::transform(buffer.begin(), buffer.end(), buffer.begin(), std::tolower);
 
 		command = GetCommand(buffer);
-		if (command == "config") ConfigCommand(buffer);
+		if (command == "config") ConfigCommand(GetParameters(buffer));
 		if (command == "help") HelpCommand();
+		if (command == "info") InfoCommand(GetParameters(buffer));
+		if (command == "clear") system("cls");
 		if (command == "exit") running = false;
 	}
+
+	Kizuna::Shutdown();
 	// Timer timer;
 	// DataTable data;
 

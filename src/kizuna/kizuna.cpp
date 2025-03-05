@@ -7,6 +7,7 @@
 
 #include <kizuna.hpp>
 
+std::vector<std::shared_ptr<Submodule>> Kizuna::submodules;
 std::map<std::string, std::map<std::string, std::string>> Configuration::Config;
 
 void Configuration::ListConfig(std::string filter) {
@@ -46,5 +47,18 @@ void Configuration::LoadConfig() {
 
 		// Store Parameter
 		Configuration::Config[submodule][key] = value;
+	}
+}
+
+void Kizuna::LoadSubmodule(std::shared_ptr<Submodule> submodule) {
+	submodule->LoadConfiguration();
+	submodule->Start();
+	submodules.push_back(submodule);
+}
+
+void Kizuna::Shutdown() {
+	for (auto& submodule : submodules) {
+		submodule->Stop();
+		submodule->~Submodule();
 	}
 }

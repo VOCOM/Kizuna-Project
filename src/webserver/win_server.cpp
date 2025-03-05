@@ -1,4 +1,4 @@
-#include <win_server.hpp>
+#include <webserver/win_server.hpp>
 
 #include <WS2tcpip.h>
 
@@ -7,47 +7,18 @@
 #include <iostream>
 #include <sstream>
 
-#include <kizuna.hpp>
+#include "win_server.hpp"
+#include <kizuna/kizuna.hpp>
 
 using namespace std::chrono_literals;
 
 // Public Methods
+void WebServer::Info() {
+	std::cout << "Submodule " << Name << "\n";
+	std::cout << "Address " << nodename << ':' << port << "\n";
+	std::cout << "Status " << (listening ? "Active" : "Inactive") << "\n";
+}
 void WebServer::Start() {
-	listening = listen(listenSocket, SOMAXCONN) != SOCKET_ERROR;
-
-	if (listening) {
-		server = std::thread(&WebServer::StartServer, this);
-	} else {
-		std::cout << "Failed to start listening.\n";
-		closesocket(listenSocket);
-		WSACleanup();
-	}
-}
-
-void WebServer::Restart() {
-	CloseServer();
-	Configuration::LoadConfig();
-	Start();
-}
-
-WebServer::WebServer() {
-	// Initialize Winsock
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData)) {
-		std::cout << "Error initializing WS2_32.dll.\n";
-		return;
-	}
-
-	// Load configuration
-	auto config = Configuration::Config["webserver"];
-	port        = config["port"];
-	nodename    = config["nodename"];
-
-	ZeroMemory(&hints, sizeof(hints));
-	hints.ai_family   = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags    = AI_PASSIVE;
-
 	// Resolve local IP Address and Port for server
 	if (GetAddrInfo(nodename.c_str(), port.c_str(), &hints, &result)) {
 		std::cout << "Error starting webserver.\n";
@@ -73,22 +44,56 @@ WebServer::WebServer() {
 
 	// Cleanup
 	freeaddrinfo(result);
-	std::cout << "Webserver initialized on port " << port << "\n";
-}
 
-WebServer::~WebServer() {
-	std::cout << "Shutting down webserver...\n";
+	// Begin Listening
+	if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR) {
+		std::cout << "Failed to start listening.\n";
+		closesocket(listenSocket);
+		WSACleanup();
+	}
+
+	listening = true;
+	server    = std::thread(&WebServer::StartServer, this);
+	std::cout << "Webserver initialized " << nodename << ":" << port << "\n";
+}
+void WebServer::Stop() {
+	std::cout << "Webserver terminating...\n";
 	listening = false;
 	closesocket(clientSocket);
 	WSACleanup();
 	if (server.joinable()) server.join();
 }
+void WebServer::Restart() {
+	CloseServer();
+	LoadConfiguration();
+	Start();
+}
+void WebServer::LoadConfiguration() {
+	// Load configuration
+	auto config = Configuration::Config["webserver"];
+	port        = config["port"];
+	nodename    = config["nodename"];
+}
+
+WebServer::WebServer() {
+	// Initialize Winsock
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData)) {
+		std::cout << "Error initializing WS2_32.dll.\n";
+		return;
+	}
+
+	ZeroMemory(&hints, sizeof(hints));
+	hints.ai_family   = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_flags    = AI_PASSIVE;
+}
+WebServer::~WebServer() {}
 
 // Private Methods
 void WebServer::StartServer() {
 	int bytesReceived;
 	while (listening) {
-
 		AcceptConnection();
 
 		// Read data
@@ -113,7 +118,6 @@ void WebServer::StartServer() {
 		SendResponse(response.c_str(), response.size());
 	}
 }
-
 void WebServer::CloseServer() {
 	if (shutdown(clientSocket, SD_SEND) != SOCKET_ERROR) return;
 	std::cout << "Shutdown Failed.\n";

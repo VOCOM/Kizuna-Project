@@ -4,11 +4,18 @@
 #include <thread>
 #include <utility>
 
+#include <kizuna/kizuna.hpp>
+
 #include <CL/opencl.hpp>
 
-class Harmony {
+class Harmony : public Submodule {
 public:
-	void Start();
+	// Submodule Interface
+	virtual void Info();
+	virtual void Start();
+	virtual void Stop();
+	virtual void Restart();
+	virtual void LoadConfiguration();
 
 	static cl::Buffer& Buffer(int idx);
 	static cl::CommandQueue& Queue() { return queue; }
@@ -17,12 +24,15 @@ public:
 	static cl::Kernel& Centroid() { return centroid; }
 
 	Harmony();
-	~Harmony();
+	virtual ~Harmony();
+
+public:
+	const char* Name = "Harmony";
 
 private:
 	static void Loop();
 
-	static void LoadConfiguration();
+	static cl::Context GetContext() { return cl::Context(cl::Device::getDefault()); }
 	static bool LoadPlatform();
 	static bool LoadDevice(uint8_t cl_device_type);
 	static bool BuildProgram(cl::Context& context, cl::Device& device, std::string source_path, cl::Program& program);

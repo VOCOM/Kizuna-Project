@@ -1,7 +1,7 @@
 #ifndef UNSUPERVISED
 #define UNSUPERVISED
 
-#include <data.hpp>
+#include <kizuna/data.hpp>
 
 class Clusters {
 public:

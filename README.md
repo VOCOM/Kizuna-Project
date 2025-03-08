@@ -1,10 +1,10 @@
 # Kizuna Project
 Hub of Specialized AI for home IoT
 
-| Layer    | Language |
-| :------- | :------- |
-| Frontend | HTMX     |
-| Backend  | C++      | 
+| Layer    | Language        |
+| :------- | :-------------- |
+| Frontend | Javascript HTMX |
+| Backend  | C++             | 
 
 # Feature Table
 

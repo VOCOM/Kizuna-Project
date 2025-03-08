@@ -1,16 +1,22 @@
 # Kizuna Project
 Hub of Specialized AI for home IoT
 
-| Modules   | Category              |            |
-| :-------- | :-------------------- | :--------- |
-| Kizuna    | Console Logger        |            |
-|           | Task Queue            |            |
-| Harmony   | Hardware Acceleration |            |
-|           | Unsupervised          | kMeans     |
-| Webserver | Webpage Provider      |            |
-|           | Request Forwarding    |            |
-| Utility   | Timer                 |            |
-| Test      |                       |            |
+| Layer    | Language |
+| :------- | :------- |
+| Frontend | HTMX     |
+| Backend  | C++      | 
+
+# Feature Table
+
+| Modules   | Category              | Features       |
+| :-------- | :-------------------- | :------------- |
+| Kizuna    | Task Queue            | Console Logger |
+| Harmony   | Hardware Acceleration | OpenCL         |
+|           | Unsupervised          | kMeans         |
+| Webserver | Webpage Provider      |                |
+|           | Request Forwarding    |                |
+| Utility   |                       |                |
+| Test      |                       |                |
 
 # Build
 ```

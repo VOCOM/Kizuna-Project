@@ -14,6 +14,7 @@ public:
 	virtual void Restart()           = 0;
 	virtual void LoadConfiguration() = 0;
 
+	virtual void ShellHeader();
 	virtual void Shell(std::string command, std::queue<std::string> params) = 0;
 	void EnterShell();
 

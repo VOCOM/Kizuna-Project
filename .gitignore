@@ -35,6 +35,9 @@
 
 # Directories
 /build
-
 # Configurations
 *.ini
+
+# Test data
+/csv
+*.csv

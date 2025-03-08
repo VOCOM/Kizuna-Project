@@ -7,6 +7,7 @@
 #define CL_HPP_TARGET_OPENCL_VERSION 300
 #include <CL/opencl.hpp>
 
+#include <kizuna/data.hpp>
 #include <kizuna/kizuna.hpp>
 
 class Harmony : public Submodule {
@@ -18,6 +19,7 @@ public:
 	virtual void Restart();
 	virtual void LoadConfiguration();
 
+	virtual void ShellHeader();
 	virtual void Shell(std::string command, std::queue<std::string> params);
 
 	// Hardware Resources
@@ -52,6 +54,8 @@ private:
 	static cl::CommandQueue queue;
 	static cl::Kernel euclid;
 	static cl::Kernel centroid;
+
+	static DataTable data;
 };
 
 #endif /* HARMONY */

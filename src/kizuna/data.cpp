@@ -1,5 +1,6 @@
 #include <kizuna/data.hpp>
 
+#include "data.hpp"
 #include <iomanip>
 #include <iostream>
 
@@ -14,13 +15,16 @@ int numDigits(int number) {
 	return digits;
 }
 
-void DataTable::AddFeature(const std::string featureName, std::vector<double>& values) {
+void DataTable::AddFeature(const std::string featureName) {
 	header.conservativeResize(NoChange, header.cols() + 1);
-	int cols = header.cols(), rows = values.size();
-	header(cols - 1) = featureName;
-	table.conservativeResize(rows, cols);
-	for (int row = 0; row < rows; row++)
-		table(row, cols - 1) = values[row];
+	table.conservativeResize(NoChange, header.cols());
+	header(header.cols() - 1) = featureName;
+}
+void DataTable::AddElement(std::vector<double>& values) {
+	int count = values.size();
+	table.conservativeResize(table.rows() + 1, NoChange);
+	auto& newRow = table.row(Rows() - 1);
+	for (int col = 0; col < Cols(); col++) newRow(col) = values[col];
 }
 
 void DataTable::Info() {
@@ -50,6 +54,35 @@ void DataTable::Info() {
 		}
 		std::cout << '\n';
 	}
+}
+void DataTable::ShortInfo(int count) {
+	int rows = Rows(), cols = Cols();
+	std::vector<int> colWidths(cols);
+
+	for (int col = 0; col < cols; col++) {
+		std::cout << '\'' << header(col) << "\' ";
+		colWidths[col] = header(col).size();
+		for (int row = 0; row < rows; row++) {
+			int w = numDigits(table(row, col));
+			if (w > colWidths[col]) colWidths[col] = w;
+		}
+	}
+	std::cout << '\n';
+
+	for (int row = 0; row < std::min(count, rows); row++) {
+		for (int col = 0; col < cols; col++) {
+			double val = table(row, col);
+			std::cout << std::setw(colWidths[col] + 1) << val << " ";
+		}
+		std::cout << '\n';
+	}
+
+	if (rows > count) {
+		std::cout << "...\n";
+		for (int col = 0; col < cols; col++)
+			std::cout << std::setw(colWidths[col] + 1) << table(rows - 1, col) << " ";
+	}
+	std::cout << "\n";
 }
 
 auto& DataTable::operator[](int index) {

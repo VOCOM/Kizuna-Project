@@ -1,10 +1,13 @@
 #include <harmony.hpp>
 
+#include <algorithm>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 
 #include <kizuna/core.hpp>
+#include <utility/utils.hpp>
 
 std::thread Harmony::mainThread;
 std::vector<std::thread> Harmony::workerThreads;
@@ -18,6 +21,8 @@ std::vector<cl::Buffer> Harmony::buffers;
 cl::CommandQueue Harmony::queue;
 cl::Kernel Harmony::euclid;
 cl::Kernel Harmony::centroid;
+
+DataTable Harmony::data;
 
 void Harmony::Info() {
 	std::cout << "Submodule " << Name() << "\n";
@@ -60,11 +65,35 @@ void Harmony::LoadConfiguration() {
 		buffers.push_back(cl::Buffer(GetContext(), CL_MEM_READ_WRITE, sizeof(int) * MAX_BUFFER_SIZE));
 }
 
+void Harmony::ShellHeader() {
+	if (data.Cols() > 0) data.ShortInfo(3);
+	std::cout << name << ": ";
+}
 void Harmony::Shell(std::string command, std::queue<std::string> params) {
+	if (command == "load") {
+		std::ifstream fs(params.front());
+		std::stringstream ss;
+		ss << fs.rdbuf();
+
+		std::string line;
+		ss >> line;
+		auto headers = Split(line, ',');
+		for (auto& header : headers) data.AddFeature(header);
+
+		while (!ss.eof()) {
+			ss >> line;
+			std::vector<std::string> stringValues = Split(line, ',');
+			std::vector<double> values;
+			for (auto& v : stringValues) values.push_back(std::stod(v));
+			for (auto& header : headers) data.AddElement(values);
+		}
+	}
+	if (command == "run") {
+		// Trigger Harmony to run model
+	}
 }
 
 Harmony::Harmony() : Submodule("Harmony") {
-
 	// Load OpenCL Supported Hardware
 	if (LoadPlatform() == false) {
 		std::cout << "Error registering computing platform.\n";
@@ -102,6 +131,8 @@ Harmony::~Harmony() {
 void Harmony::Loop() {
 	try {
 		while (status != Offline) {
+			// Check work queue
+			// Lock data table
 		}
 		std::cout << "Harmony terminating...\n";
 	} catch (Error& e) {

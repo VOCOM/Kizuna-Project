@@ -4,12 +4,16 @@
 
 #include <utility/utils.hpp>
 
+void Submodule::ShellHeader() {
+	std::cout << name << ": ";
+}
+
 void Submodule::EnterShell() {
-	system("cls");
 	bool inContext = true;
 	std::string buffer, command;
 	while (inContext) {
-		std::cout << name << ": ";
+		system("cls");
+		ShellHeader();
 		std::getline(std::cin, buffer);
 		std::transform(buffer.begin(), buffer.end(), buffer.begin(), std::tolower);
 

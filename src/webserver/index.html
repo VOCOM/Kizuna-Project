@@ -2,12 +2,24 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
   <title>Web Socket Server</title>
+  <meta charset="UTF-8">
+  <meta name="keywords" content="HTML, CSS, SVG">
+  <link rel="stylesheet" type="text/css" href="styles/style.css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
 
-<body background="#FFFFFF">
-  Hello World
+<body>
+  <table>
+    <thead>
+      <tr>
+        <th>Module</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody hx-trigger="load, every 15s" hx-get="submodule/status" hx-target="this" hx-swap="innerHTML">
+    </tbody>
+  </table>
 </body>
 
 </html>

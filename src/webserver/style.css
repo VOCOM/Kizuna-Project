@@ -1,0 +1,8 @@
+body {
+  color: azure;
+  background-color: dimgray;
+}
+
+.loading-bar {
+  width: 80px;
+}

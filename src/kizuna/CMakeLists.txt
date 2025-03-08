@@ -1,7 +1,8 @@
 project(kizuna VERSION 1.0)
 
 # Compile Library
-add_library(${PROJECT_NAME} kizuna.cpp data.cpp)
+file(GLOB SRC_FILES *.cpp)
+add_library(${PROJECT_NAME} ${SRC_FILES})
 target_include_directories(${PROJECT_NAME}
     PUBLIC ${CMAKE_SOURCE_DIR}/inc
     PUBLIC ${CMAKE_SOURCE_DIR}/inc/kizuna

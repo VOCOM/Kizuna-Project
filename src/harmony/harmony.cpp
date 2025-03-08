@@ -1,13 +1,11 @@
-#include "harmony/harmony.hpp"
+#include <harmony.hpp>
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-#include "harmony.hpp"
-#include <kizuna/kizuna.hpp>
+#include <kizuna/core.hpp>
 
-bool Harmony::running;
 std::thread Harmony::mainThread;
 
 int Harmony::MAX_CPU_THREADS;
@@ -21,16 +19,18 @@ cl::Kernel Harmony::euclid;
 cl::Kernel Harmony::centroid;
 
 void Harmony::Info() {
-	std::cout << "Submodule " << Name << "\n";
-	std::cout << "Status " << (running ? "Active" : "Inactive") << "\n";
+	std::cout << "Submodule " << Name() << "\n";
+	std::cout << "Status " << Status() << "\n";
 }
 void Harmony::Start() {
-	running    = true;
-	mainThread = std::thread(&Harmony::Loop);
+	if (status == Online) return;
+	status     = Online;
+	mainThread = std::thread(&Harmony::Loop, this);
 	std::cout << "Harmony online\n";
 }
 void Harmony::Stop() {
-	running = false;
+	if (status == Offline) return;
+	status = Offline;
 	if (mainThread.joinable()) mainThread.join();
 }
 void Harmony::Restart() {
@@ -56,7 +56,8 @@ void Harmony::LoadConfiguration() {
 		buffers.push_back(cl::Buffer(GetContext(), CL_MEM_READ_WRITE, sizeof(int) * MAX_BUFFER_SIZE));
 }
 
-Harmony::Harmony() {
+Harmony::Harmony() : Submodule("Harmony") {
+
 	// Load OpenCL Supported Hardware
 	if (LoadPlatform() == false) {
 		std::cout << "Error registering computing platform.\n";
@@ -92,7 +93,7 @@ Harmony::~Harmony() {
 }
 
 void Harmony::Loop() {
-	while (running) {}
+	while (status != Offline) {}
 	std::cout << "Harmony terminating...\n";
 }
 cl::Buffer& Harmony::Buffer(int idx) {

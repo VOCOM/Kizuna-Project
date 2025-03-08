@@ -1,24 +1,24 @@
-#include <webserver/win_server.hpp>
+#include <win_server.hpp>
 
 #include <WS2tcpip.h>
 
-#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-#include "win_server.hpp"
-#include <kizuna/kizuna.hpp>
-
-using namespace std::chrono_literals;
+#include <kizuna/core.hpp>
+#include <responses.hpp>
+#include <utility/utils.hpp>
 
 // Public Methods
 void WebServer::Info() {
-	std::cout << "Submodule " << Name << "\n";
+	std::cout << "Submodule " << Name() << "\n";
 	std::cout << "Address " << nodename << ':' << port << "\n";
-	std::cout << "Status " << (listening ? "Active" : "Inactive") << "\n";
+	std::cout << "Status " << Status() << "\n";
 }
 void WebServer::Start() {
+	if (status == Online) return;
+
 	// Resolve local IP Address and Port for server
 	if (GetAddrInfo(nodename.c_str(), port.c_str(), &hints, &result)) {
 		std::cout << "Error starting webserver.\n";
@@ -52,19 +52,20 @@ void WebServer::Start() {
 		WSACleanup();
 	}
 
-	listening = true;
-	server    = std::thread(&WebServer::StartServer, this);
+	status = Online;
+	server = std::thread(&WebServer::Loop, this);
 	std::cout << "Webserver initialized " << nodename << ":" << port << "\n";
 }
 void WebServer::Stop() {
+	if (status == Offline) return;
 	std::cout << "Webserver terminating...\n";
-	listening = false;
+	status = Offline;
 	closesocket(clientSocket);
 	WSACleanup();
 	if (server.joinable()) server.join();
 }
 void WebServer::Restart() {
-	CloseServer();
+	Stop();
 	LoadConfiguration();
 	Start();
 }
@@ -75,7 +76,8 @@ void WebServer::LoadConfiguration() {
 	nodename    = config["nodename"];
 }
 
-WebServer::WebServer() {
+// Constructors
+WebServer::WebServer() : Submodule("Webserver") {
 	// Initialize Winsock
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData)) {
 		std::cout << "Error initializing WS2_32.dll.\n";
@@ -91,42 +93,34 @@ WebServer::WebServer() {
 WebServer::~WebServer() {}
 
 // Private Methods
-void WebServer::StartServer() {
-	int bytesReceived;
-	while (listening) {
-		AcceptConnection();
+void WebServer::Loop() {
+	try {
+		while (status != Offline) {
+			AcceptConnection();
 
-		// Read data
-		char buffer[BUFFER_SIZE];
-		bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+			// Read data
+			requestBytes = recv(clientSocket, buffer, BUFFER_SIZE, 0);
 
-		// Error Case
-		if (bytesReceived < 0) {
-			listening = false;
-			closesocket(clientSocket);
-			WSACleanup();
-			continue;
+			// Error Case
+			if (requestBytes < 0) {
+				status = Offline;
+				closesocket(clientSocket);
+				WSACleanup();
+				continue;
+			}
+
+			// Closed Connection
+			if (requestBytes == 0) continue;
+
+			ProcessRequest();
+			ProcessResponse();
 		}
-
-		// Closed Connection
-		if (bytesReceived == 0) continue;
-
-		// Build Response
-		std::string response = BuildResponse();
-
-		// Send data
-		SendResponse(response.c_str(), response.size());
+		if (shutdown(clientSocket, SD_SEND) != SOCKET_ERROR) return;
+	} catch (std::exception e) {
+		status = Offline;
+		Kizuna::ErrorQueue.push(e);
 	}
 }
-void WebServer::CloseServer() {
-	if (shutdown(clientSocket, SD_SEND) != SOCKET_ERROR) return;
-	std::cout << "Shutdown Failed.\n";
-	listening = false;
-	closesocket(clientSocket);
-	WSACleanup();
-	server.join();
-}
-
 void WebServer::AcceptConnection() {
 	clientSocket = accept(listenSocket, NULL, NULL);
 	if (clientSocket != INVALID_SOCKET) return;
@@ -134,25 +128,51 @@ void WebServer::AcceptConnection() {
 	WSACleanup();
 }
 
-std::string WebServer::BuildResponse() {
-	std::ifstream fs("index.html");
-	std::stringstream ss;
-	ss << fs.rdbuf();
+void WebServer::ProcessRequest() {
+	std::string request;
+	request.insert(0, buffer, requestBytes);
+	std::stringstream ss(request);
 
-	std::stringstream response;
-	char protocol[] = "HTTP/3 ";
-	char status[]   = "200 OK\n";
-	char headers[]  = "Content-Type: text/html; charset=UTF-8\n";
-	char length[]   = "Content-Length: ";
-	response << protocol << status << headers << length << ss.str().size() << ss.str();
-	return response.str();
+	// Process HTML method
+	ss >> method >> param >> protocol;
+	contentType.clear();
 }
+void WebServer::ProcessResponse() {
+	std::string content = BuildContent();
+	std::stringstream responseStream;
+	responseStream << "HTTP/1.1 200 OK\n"
+								 << "content-type: " << contentType << "\n"
+								 << "content-length: " << content.size() << "\n"
+								 << "\n"
+								 << content << "\n";
 
-void WebServer::SendResponse(const char buffer[], int bytesToSend) {
-	if (send(clientSocket, buffer, bytesToSend, 0) == SOCKET_ERROR) {
-		std::cout << "Failed to send data.\n";
-		listening = false;
-		closesocket(clientSocket);
-		WSACleanup();
+	std::string response(responseStream.str());
+	if (send(clientSocket, response.c_str(), response.size(), 0) != SOCKET_ERROR) return;
+
+	std::cout << "Failed to send data.\n";
+	status = Offline;
+	closesocket(clientSocket);
+	WSACleanup();
+}
+std::string WebServer::BuildContent() {
+	std::stringstream contentStream;
+
+	param.erase(0, 1); // Remove starting '/'
+	if (param == "") param = "index.html";
+
+	int ext = param.find('.');
+	if (ext != std::string::npos) { // File request
+		std::string fileType(param.substr(ext, param.size() - ext));
+		if (fileType == ".html") contentType = "text/html";
+		if (fileType == ".css") contentType = "text/css";
+		if (fileType == ".svg") contentType = "image/svg+xml";
+
+		std::ifstream fileStream(param);
+		contentStream << fileStream.rdbuf();
+	} else { // Server command
+		auto paramList = Split(param, '/');
+		if (paramList.front() == "submodule") Responses::Status(contentStream);
 	}
+
+	return contentStream.str();
 }

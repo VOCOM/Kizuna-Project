@@ -1,14 +1,19 @@
+#include <kizuna.hpp>
+
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <vector>
 
-#include <kizuna.hpp>
+#include <configuration.hpp>
 
-std::vector<std::shared_ptr<Submodule>> Kizuna::submodules;
+std::vector<std::shared_ptr<Submodule>> Kizuna::SubmoduleList;
+std::queue<std::exception> Kizuna::ErrorQueue;
 std::map<std::string, std::map<std::string, std::string>> Configuration::Config;
+
+StatusCode Kizuna::errorHandlerStatus;
+std::thread Kizuna::errorHandler;
 
 void Configuration::ListConfig(std::string filter) {
 	std::cout << "Loaded Configuration:\n\n";
@@ -50,15 +55,47 @@ void Configuration::LoadConfig() {
 	}
 }
 
+void Kizuna::ErrorHandler() {
+	while (errorHandlerStatus != Offline) {
+		if (ErrorQueue.size() > 0) {
+			auto err = ErrorQueue.front();
+			std::cout << err.what();
+		} else {
+			std::this_thread::yield();
+		}
+	}
+}
+void Kizuna::StartErrorHandler() {
+	errorHandlerStatus = Online;
+	errorHandler       = std::thread(ErrorHandler);
+}
+void Kizuna::StopErrorHandler() {
+	errorHandlerStatus = Offline;
+	errorHandler.join();
+}
+
 void Kizuna::LoadSubmodule(std::shared_ptr<Submodule> submodule) {
 	submodule->LoadConfiguration();
 	submodule->Start();
-	submodules.push_back(submodule);
+	SubmoduleList.push_back(submodule);
 }
-
 void Kizuna::Shutdown() {
-	for (auto& submodule : submodules) {
+	for (auto& submodule : SubmoduleList) {
 		submodule->Stop();
 		submodule->~Submodule();
 	}
+	StopErrorHandler();
+}
+
+std::string Submodule::Status() const {
+	std::string statusString("Offline");
+	switch (status) {
+	case StatusCode::Online:
+		statusString = "Online";
+		break;
+	case StatusCode::Busy:
+		statusString = "Busy";
+		break;
+	}
+	return statusString;
 }

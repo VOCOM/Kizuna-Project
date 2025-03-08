@@ -4,41 +4,29 @@
 #include <exception>
 #include <map>
 #include <memory>
+#include <queue>
 #include <string>
+#include <thread>
 #include <utility>
 
-#include <CL/opencl.hpp>
-
-class Configuration {
-public:
-	static void ListConfig(std::string filter = "");
-	static void LoadConfig();
-
-	static std::map<std::string, std::map<std::string, std::string>> Config;
-
-	Configuration() = delete;
-};
-
-class Submodule {
-public:
-	virtual void Info()              = 0;
-	virtual void Start()             = 0;
-	virtual void Stop()              = 0;
-	virtual void Restart()           = 0;
-	virtual void LoadConfiguration() = 0;
-
-	virtual ~Submodule() {}
-
-public:
-	const char* Name = nullptr;
-};
+#include "status.hpp"
+#include "submodule.hpp"
 
 class Kizuna {
 public:
+	static void ErrorHandler();
+	static void StartErrorHandler();
+	static void StopErrorHandler();
+
 	static void LoadSubmodule(std::shared_ptr<Submodule>);
 	static void Shutdown();
 
-	static std::vector<std::shared_ptr<Submodule>> submodules;
+	static std::vector<std::shared_ptr<Submodule>> SubmoduleList;
+	static std::queue<std::exception> ErrorQueue;
+
+private:
+	static StatusCode errorHandlerStatus;
+	static std::thread errorHandler;
 };
 
 #endif /* KIZUNA */

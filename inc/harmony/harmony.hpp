@@ -4,9 +4,9 @@
 #include <thread>
 #include <utility>
 
-#include <kizuna/kizuna.hpp>
-
 #include <CL/opencl.hpp>
+
+#include <kizuna/kizuna.hpp>
 
 class Harmony : public Submodule {
 public:
@@ -17,20 +17,19 @@ public:
 	virtual void Restart();
 	virtual void LoadConfiguration();
 
+	// Hardware Resources
 	static cl::Buffer& Buffer(int idx);
 	static cl::CommandQueue& Queue() { return queue; }
 
+	// Hardware Functions
 	static cl::Kernel& Distance() { return euclid; }
 	static cl::Kernel& Centroid() { return centroid; }
 
 	Harmony();
 	virtual ~Harmony();
 
-public:
-	const char* Name = "Harmony";
-
 private:
-	static void Loop();
+	void Loop();
 
 	static cl::Context GetContext() { return cl::Context(cl::Device::getDefault()); }
 	static bool LoadPlatform();
@@ -38,7 +37,6 @@ private:
 	static bool BuildProgram(cl::Context& context, cl::Device& device, std::string source_path, cl::Program& program);
 
 private:
-	static bool running;
 	static std::thread mainThread;
 
 	static int MAX_CPU_THREADS;

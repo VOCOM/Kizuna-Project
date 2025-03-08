@@ -1,5 +1,5 @@
-#ifndef TCP
-#define TCP
+#ifndef WIN_SERVER
+#define WIN_SERVER
 
 #include <WinSock2.h>
 #pragma comment(lib, "Ws2_32.lib")
@@ -22,21 +22,27 @@ public:
 	virtual ~WebServer();
 
 private:
-	void StartServer();
-	void CloseServer();
+	void Loop();
 	void AcceptConnection();
-	std::string BuildResponse();
-	void SendResponse(const char buffer[], int bytesToSend);
+	void ProcessRequest();
+	void ProcessResponse();
+	std::string BuildContent();
 
 private:
 	static const uint64_t BUFFER_SIZE = 0xFFFF;
-	const char* Name                  = "Webserver";
 	WSADATA wsaData;
 
-	bool listening = false;
 	std::string port;
 	std::string nodename;
 	std::thread server;
+
+	// Requests
+	int requestBytes;
+	std::string method;
+	std::string param;
+	std::string protocol;
+	std::string contentType;
+	char buffer[BUFFER_SIZE];
 
 	struct addrinfo hints;
 	struct addrinfo* result = nullptr;
@@ -45,4 +51,4 @@ private:
 	SOCKET clientSocket = INVALID_SOCKET;
 };
 
-#endif /* TCP */
+#endif /* WIN_SERVER */

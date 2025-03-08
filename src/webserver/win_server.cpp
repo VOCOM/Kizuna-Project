@@ -14,7 +14,7 @@
 void WebServer::Info() {
 	std::cout << "Submodule " << Name() << "\n";
 	std::cout << "Address " << nodename << ':' << port << "\n";
-	std::cout << "Status " << Status() << "\n";
+	std::cout << "Status " << Status() << "\n\n";
 }
 void WebServer::Start() {
 	if (status == Online) return;
@@ -76,6 +76,9 @@ void WebServer::LoadConfiguration() {
 	nodename    = config["nodename"];
 }
 
+void WebServer::Shell(std::string command, std::queue<std::string> params) {
+}
+
 // Constructors
 WebServer::WebServer() : Submodule("Webserver") {
 	// Initialize Winsock
@@ -116,7 +119,7 @@ void WebServer::Loop() {
 			ProcessResponse();
 		}
 		if (shutdown(clientSocket, SD_SEND) != SOCKET_ERROR) return;
-	} catch (std::exception e) {
+	} catch (Error e) {
 		status = Offline;
 		Kizuna::ErrorQueue.push(e);
 	}

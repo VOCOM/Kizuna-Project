@@ -4,7 +4,8 @@
 enum StatusCode {
 	Offline,
 	Online,
-	Busy
+	Busy,
+	Faulted
 };
 
 #endif /* STATUS */

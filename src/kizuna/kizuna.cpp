@@ -9,7 +9,7 @@
 #include <configuration.hpp>
 
 std::vector<std::shared_ptr<Submodule>> Kizuna::SubmoduleList;
-std::queue<std::exception> Kizuna::ErrorQueue;
+std::queue<Error> Kizuna::ErrorQueue;
 std::map<std::string, std::map<std::string, std::string>> Configuration::Config;
 
 StatusCode Kizuna::errorHandlerStatus;
@@ -59,7 +59,17 @@ void Kizuna::ErrorHandler() {
 	while (errorHandlerStatus != Offline) {
 		if (ErrorQueue.size() > 0) {
 			auto err = ErrorQueue.front();
-			std::cout << err.what();
+
+			for (auto& submodule : Kizuna::SubmoduleList) {
+				std::string name(submodule->Name());
+				if (err.source != submodule->Name()) continue;
+				std::cout << "\n"
+									<< err.source << " faulted\n"
+									<< err.what() << "\n"
+									<< "Status " << submodule->Status() << "\n";
+			}
+
+			ErrorQueue.pop();
 		} else {
 			std::this_thread::yield();
 		}
@@ -95,6 +105,9 @@ std::string Submodule::Status() const {
 		break;
 	case StatusCode::Busy:
 		statusString = "Busy";
+		break;
+	case StatusCode::Faulted:
+		statusString = "Faulted";
 		break;
 	}
 	return statusString;

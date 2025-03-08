@@ -9,6 +9,7 @@
 #include <thread>
 #include <utility>
 
+#include "exceptions.hpp"
 #include "status.hpp"
 #include "submodule.hpp"
 
@@ -22,7 +23,7 @@ public:
 	static void Shutdown();
 
 	static std::vector<std::shared_ptr<Submodule>> SubmoduleList;
-	static std::queue<std::exception> ErrorQueue;
+	static std::queue<Error> ErrorQueue;
 
 private:
 	static StatusCode errorHandlerStatus;

@@ -7,6 +7,7 @@
 #include <kizuna/core.hpp>
 
 std::thread Harmony::mainThread;
+std::vector<std::thread> Harmony::workerThreads;
 
 int Harmony::MAX_CPU_THREADS;
 int Harmony::MAX_GPU_THREADS;
@@ -20,7 +21,7 @@ cl::Kernel Harmony::centroid;
 
 void Harmony::Info() {
 	std::cout << "Submodule " << Name() << "\n";
-	std::cout << "Status " << Status() << "\n";
+	std::cout << "Status " << Status() << "\n\n";
 }
 void Harmony::Start() {
 	if (status == Online) return;
@@ -50,10 +51,16 @@ void Harmony::LoadConfiguration() {
 	param            = config["buffer_count"];
 	MAX_BUFFER_COUNT = std::stoi(param);
 
+	// Initialize worker pool
+	workerThreads.resize(MAX_CPU_THREADS);
+
 	// Initialize buffers
 	while (buffers.size()) buffers.pop_back();
 	for (int i = 0; i < MAX_BUFFER_COUNT; i++)
 		buffers.push_back(cl::Buffer(GetContext(), CL_MEM_READ_WRITE, sizeof(int) * MAX_BUFFER_SIZE));
+}
+
+void Harmony::Shell(std::string command, std::queue<std::string> params) {
 }
 
 Harmony::Harmony() : Submodule("Harmony") {
@@ -93,8 +100,14 @@ Harmony::~Harmony() {
 }
 
 void Harmony::Loop() {
-	while (status != Offline) {}
-	std::cout << "Harmony terminating...\n";
+	try {
+		while (status != Offline) {
+		}
+		std::cout << "Harmony terminating...\n";
+	} catch (Error& e) {
+		status = Faulted;
+		Kizuna::ErrorQueue.push(e);
+	}
 }
 cl::Buffer& Harmony::Buffer(int idx) {
 	if (idx > MAX_BUFFER_COUNT) throw new std::exception();

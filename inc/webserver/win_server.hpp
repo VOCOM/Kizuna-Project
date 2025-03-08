@@ -18,6 +18,8 @@ public:
 	virtual void Restart();
 	virtual void LoadConfiguration();
 
+	virtual void Shell(std::string command, std::queue<std::string> params);
+
 	WebServer();
 	virtual ~WebServer();
 

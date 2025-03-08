@@ -10,13 +10,6 @@
 #include <harmony.hpp>
 #include <webserver.hpp>
 
-std::queue<std::string> GetParameters(std::string& buffer) {
-	auto paramList = Split(buffer, ' ');
-	std::queue<std::string> params;
-	for (auto& param : paramList) params.push(param);
-	return params;
-}
-
 void HelpCommand(std::queue<std::string>& params) {}
 void ConfigCommand(std::queue<std::string>& params) {
 	std::string filter;
@@ -32,10 +25,12 @@ void SubmoduleCommand(std::queue<std::string>& params, void (Submodule::*functio
 		for (auto& submodule : Kizuna::SubmoduleList) {
 			std::string name(submodule->Name());
 			std::transform(name.begin(), name.end(), name.begin(), std::tolower);
-			if (param != name) continue;
+			if (param != name && param != "all") continue;
 			std::bind(function, submodule)();
 		}
 		params.pop();
+		if (param == "all")
+			params = std::queue<std::string>();
 	}
 }
 
@@ -44,8 +39,8 @@ int main(int argc, char** argv) {
 	Configuration::LoadConfig();
 
 	Kizuna::StartErrorHandler();
-	Kizuna::LoadSubmodule(std::make_shared<Harmony>());
 	Kizuna::LoadSubmodule(std::make_shared<WebServer>());
+	Kizuna::LoadSubmodule(std::make_shared<Harmony>());
 
 	bool running = true;
 	std::string buffer, command;
@@ -54,7 +49,7 @@ int main(int argc, char** argv) {
 		std::getline(std::cin, buffer);
 		std::transform(buffer.begin(), buffer.end(), buffer.begin(), std::tolower);
 
-		auto params = GetParameters(buffer);
+		auto params = Enqueue(buffer);
 		command     = params.front();
 		params.pop();
 
@@ -63,6 +58,7 @@ int main(int argc, char** argv) {
 		if (command == "stop") SubmoduleCommand(params, &Submodule::Stop);
 		if (command == "restart") SubmoduleCommand(params, &Submodule::Restart);
 		if (command == "info") SubmoduleCommand(params, &Submodule::Info);
+		if (command == "link") SubmoduleCommand(params, &Submodule::EnterShell);
 
 		if (command == "help") HelpCommand(params);
 		if (command == "config") ConfigCommand(params);

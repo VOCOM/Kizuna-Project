@@ -4,6 +4,7 @@
 #include <thread>
 #include <utility>
 
+#define CL_HPP_TARGET_OPENCL_VERSION 300
 #include <CL/opencl.hpp>
 
 #include <kizuna/kizuna.hpp>
@@ -16,6 +17,8 @@ public:
 	virtual void Stop();
 	virtual void Restart();
 	virtual void LoadConfiguration();
+
+	virtual void Shell(std::string command, std::queue<std::string> params);
 
 	// Hardware Resources
 	static cl::Buffer& Buffer(int idx);
@@ -38,6 +41,7 @@ private:
 
 private:
 	static std::thread mainThread;
+	static std::vector<std::thread> workerThreads;
 
 	static int MAX_CPU_THREADS;
 	static int MAX_GPU_THREADS;

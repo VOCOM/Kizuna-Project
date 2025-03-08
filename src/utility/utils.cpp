@@ -2,9 +2,9 @@
 
 #include <algorithm>
 #include <functional>
-#include <sstream>
-
 #include <iostream>
+#include <queue>
+#include <sstream>
 
 using namespace std::placeholders;
 
@@ -27,4 +27,11 @@ std::vector<std::string> Split(std::string& input, const char delim) {
 	}
 
 	return substrings;
+}
+
+std::queue<std::string> Enqueue(std::string& buffer) {
+	auto paramList = Split(buffer, ' ');
+	std::queue<std::string> params;
+	for (auto& param : paramList) params.push(param);
+	return params;
 }

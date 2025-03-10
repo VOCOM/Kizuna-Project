@@ -5,8 +5,10 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 #include <kizuna/core.hpp>
+#include <unsupervised.hpp>
 #include <utility/utils.hpp>
 
 std::thread Harmony::mainThread;
@@ -18,15 +20,33 @@ int Harmony::MAX_BUFFER_COUNT;
 int Harmony::MAX_BUFFER_SIZE;
 
 std::vector<cl::Buffer> Harmony::buffers;
-cl::CommandQueue Harmony::queue;
+cl::CommandQueue Harmony::hardwareQueue;
 cl::Kernel Harmony::euclid;
 cl::Kernel Harmony::centroid;
 
+std::atomic_bool Harmony::dataLock = false;
 DataTable Harmony::data;
+Results Harmony::results;
+std::queue<Results (*)(DataTable&, int)> Harmony::runQueue;
 
 void Harmony::Info() {
 	std::cout << "Submodule " << Name() << "\n";
-	std::cout << "Status " << Status() << "\n\n";
+	std::cout << "Status " << Status() << "\n";
+	int typeVal = cl::Device::getDefault().getInfo<CL_DEVICE_TYPE>();
+	std::string type("CPU");
+	switch (typeVal) {
+	case CL_DEVICE_TYPE_GPU:
+		type = "GPU";
+		break;
+	case CL_DEVICE_TYPE_ACCELERATOR:
+		type = "Accelerator";
+		break;
+	case CL_DEVICE_TYPE_CUSTOM:
+		type = "Custom";
+		break;
+	}
+	std::cout << "Hardware " << type << "\n";
+	std::cout << "\n";
 }
 void Harmony::Start() {
 	if (status == Online) return;
@@ -47,14 +67,20 @@ void Harmony::LoadConfiguration() {
 	std::string param;
 	auto& config = Configuration::Config["harmony"];
 
+	if (config.find("max_cpu_threads") == config.end())
+		config["max_cpu_threads"] = "auto";
 	param           = config["max_cpu_threads"];
 	MAX_CPU_THREADS = param == "auto" ? std::thread::hardware_concurrency() : std::stoi(param);
 
+	if (config.find("buffer_size") == config.end())
+		config["buffer_size"] = "0xFFFFF";
 	param           = config["buffer_size"];
-	MAX_BUFFER_SIZE = std::stoi(param, nullptr, param.find('x') == std::string::npos ? 10 : 16);
+	int base        = param.find('x') == std::string::npos ? 10 : 16;
+	MAX_BUFFER_SIZE = std::stoi(param, nullptr, base);
 
-	param            = config["buffer_count"];
-	MAX_BUFFER_COUNT = std::stoi(param);
+	if (config.find("buffer_count") == config.end())
+		config["buffer_count"] = "5";
+	MAX_BUFFER_COUNT = std::stoi(config["buffer_count"]);
 
 	// Initialize worker pool
 	workerThreads.resize(MAX_CPU_THREADS);
@@ -66,7 +92,27 @@ void Harmony::LoadConfiguration() {
 }
 
 void Harmony::ShellHeader() {
-	if (data.Cols() > 0) data.ShortInfo(3);
+	if (dataLock) std::cout << "Harmony executing...\n";
+	while (dataLock) std::this_thread::yield();
+
+	if (data.Cols() > 0) {
+		std::cout << "Data:\n";
+		data.ShortInfo(3);
+	}
+
+	if (!results.Empty()) {
+		std::cout << "Results:\n";
+		auto headers = data.Header();
+		for (int c = 0; c < headers.size(); c++) {
+			std::cout << '[' << headers[c] << "] ";
+			auto values = results.clusters[c];
+			for (int i = 0; i < values.cols(); i++) {
+				std::cout << values(i) << " ";
+			}
+			std::cout << "\n";
+		}
+	}
+
 	std::cout << name << ": ";
 }
 void Harmony::Shell(std::string command, std::queue<std::string> params) {
@@ -85,11 +131,12 @@ void Harmony::Shell(std::string command, std::queue<std::string> params) {
 			std::vector<std::string> stringValues = Split(line, ',');
 			std::vector<double> values;
 			for (auto& v : stringValues) values.push_back(std::stod(v));
-			for (auto& header : headers) data.AddElement(values);
+			for (auto& header : headers) data.AddElements(values);
 		}
 	}
 	if (command == "run") {
-		// Trigger Harmony to run model
+		auto& model = params.front();
+		if (model == "kmeans") runQueue.push(KMeans);
 	}
 }
 
@@ -111,7 +158,7 @@ Harmony::Harmony() : Submodule("Harmony") {
 	cl::Context context(device);
 
 	// Initialize Queue
-	queue = cl::CommandQueue(context, device);
+	hardwareQueue = cl::CommandQueue(context, device);
 
 	// Compile Core Program
 	cl::Program core_program;
@@ -131,8 +178,18 @@ Harmony::~Harmony() {
 void Harmony::Loop() {
 	try {
 		while (status != Offline) {
-			// Check work queue
-			// Lock data table
+			if (runQueue.empty()) {
+				dataLock = false;
+				std::this_thread::yield();
+				continue;
+			}
+
+			auto& model = runQueue.front();
+			runQueue.pop();
+
+			dataLock = true;
+			results  = model(data, 4);
+			std::cout << "Completed " << results.Type() << " model\n";
 		}
 		std::cout << "Harmony terminating...\n";
 	} catch (Error& e) {
@@ -142,7 +199,7 @@ void Harmony::Loop() {
 }
 cl::Buffer& Harmony::Buffer(int idx) {
 	if (idx > MAX_BUFFER_COUNT) throw new std::exception();
-	queue.enqueueFillBuffer(buffers[idx], 0, 0, sizeof(int) * MAX_BUFFER_SIZE);
+	hardwareQueue.enqueueFillBuffer(buffers[idx], 0, 0, sizeof(int) * MAX_BUFFER_SIZE);
 	return buffers[idx];
 }
 

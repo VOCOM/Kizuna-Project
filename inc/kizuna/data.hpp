@@ -26,7 +26,7 @@ public:
 	DynamicMatrix& Data() { return table; }
 
 	void AddFeature(const std::string featureName);
-	void AddElement(std::vector<double>& values);
+	void AddElements(std::vector<double>& values);
 
 	DataTable() {}
 

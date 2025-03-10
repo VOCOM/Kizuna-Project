@@ -1,6 +1,7 @@
 #ifndef HARMONY
 #define HARMONY
 
+#include <queue>
 #include <thread>
 #include <utility>
 
@@ -9,6 +10,7 @@
 
 #include <kizuna/data.hpp>
 #include <kizuna/kizuna.hpp>
+#include <results.hpp>
 
 class Harmony : public Submodule {
 public:
@@ -24,7 +26,7 @@ public:
 
 	// Hardware Resources
 	static cl::Buffer& Buffer(int idx);
-	static cl::CommandQueue& Queue() { return queue; }
+	static cl::CommandQueue& Queue() { return hardwareQueue; }
 
 	// Hardware Functions
 	static cl::Kernel& Distance() { return euclid; }
@@ -51,11 +53,14 @@ private:
 	static int MAX_BUFFER_SIZE;
 
 	static std::vector<cl::Buffer> buffers;
-	static cl::CommandQueue queue;
+	static cl::CommandQueue hardwareQueue;
 	static cl::Kernel euclid;
 	static cl::Kernel centroid;
 
+	static std::atomic_bool dataLock;
 	static DataTable data;
+	static Results results;
+	static std::queue<Results (*)(DataTable&, int)> runQueue;
 };
 
 #endif /* HARMONY */

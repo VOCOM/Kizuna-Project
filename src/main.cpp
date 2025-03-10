@@ -42,6 +42,26 @@ int main(int argc, char** argv) {
 	Kizuna::LoadSubmodule(std::make_shared<WebServer>());
 	Kizuna::LoadSubmodule(std::make_shared<Harmony>());
 
+	// DataTable data;
+	// int c = 50;
+	// std::vector<double> feature1, feature2, feature3, feature4;
+	// for (int i = 0; i < c; i++) {
+	// 	feature1.push_back(std::rand() % 99 + 0.1);
+	// 	feature2.push_back(std::rand() % 99 + 0.1);
+	// 	feature3.push_back(std::rand() % 99 + 0.1);
+	// 	feature4.push_back(std::rand() % 99 + 0.1);
+	// }
+	// std::cout << feature1.size() << "\n";
+	// data.AddFeature("Feature 1");
+	// data.AddFeature("Feature 2");
+	// data.AddFeature("Feature 3");
+	// data.AddFeature("Feature 4");
+	// for (int i = 0; i < c; i++) {
+	// 	std::vector<double> row = {feature1[i], feature2[i], feature3[i], feature4[i]};
+	// 	data.AddElements(row);
+	// }
+	// data.Info();
+
 	bool running = true;
 	std::string buffer, command;
 	while (running) {

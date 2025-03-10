@@ -27,7 +27,7 @@ void LoadCluster(const int start, const int end, const int N, const int dim, cl:
 	}
 }
 
-Clusters KMeans(int k, DataTable& input) {
+Results KMeans(DataTable& input, int k) {
 	// Check from within Harmony
 	// if (input.Size() * k > Harmony::BufferInfo().second)
 	// 	throw new std::exception("Insufficient Buffer Space!");
@@ -38,12 +38,12 @@ Clusters KMeans(int k, DataTable& input) {
 	std::vector<int> clusterIndexes(maxEntries);
 
 	Matrix<double, Dynamic, Dynamic> centroids(k, dimensions), newCentroids(k, dimensions);
-	Clusters clusters(k, maxEntries, dimensions);
+	Results result;
+	result.clusters = Clusters(k, maxEntries, dimensions);
 
 	// Initialize Clusters & Centroids
-	for (int i = 0; i < k; i++) {
+	for (int i = 0; i < k; i++)
 		centroids.row(i) = input.GetRow(i);
-	}
 
 	// Get Master Queue
 	auto queue   = Harmony::Queue();
@@ -126,7 +126,7 @@ Clusters KMeans(int k, DataTable& input) {
 	for (int i = 0; i < maxThreads; i++) {
 		int start = i * step;
 		int end   = std::min(start + step, maxEntries);
-		threadpool.push_back(std::thread(LoadCluster, start, end, maxEntries, dimensions, buffer3, buffer1, clusters));
+		threadpool.push_back(std::thread(LoadCluster, start, end, maxEntries, dimensions, buffer3, buffer1, result.clusters));
 	}
 	for (auto& thread : threadpool)
 		thread.join();
@@ -140,5 +140,6 @@ Clusters KMeans(int k, DataTable& input) {
 	std::cout << "Buffering Time " << bufferTime << "ms\n";
 #endif
 
-	return clusters;
+	result.empty = false;
+	return result;
 }

@@ -71,9 +71,13 @@ void WebServer::Restart() {
 }
 void WebServer::LoadConfiguration() {
 	// Load configuration
-	auto config = Configuration::Config["webserver"];
-	port        = config["port"];
-	nodename    = config["nodename"];
+	auto& config = Configuration::Config["webserver"];
+
+	if (config.find("port") == config.end()) config["port"] = "8080";
+	port = config["port"];
+
+	if (config.find("nodename") == config.end()) config["nodename"] = "localhost";
+	nodename = config["nodename"];
 }
 
 void WebServer::Shell(std::string command, std::queue<std::string> params) {

@@ -21,8 +21,12 @@ void Configuration::ListConfig(std::string filter) {
 		if ((filter != "") && (filter != modules.first)) continue;
 
 		std::cout << "Submodule: " << modules.first << "\n";
+		int w = 0;
+		for (auto& param : modules.second)
+			if (param.first.size() > w) w = param.first.size();
+
 		for (auto& param : modules.second) {
-			std::cout << std::setw(11) << std::left << param.first;
+			std::cout << std::setw(w + 1) << std::left << param.first;
 			std::cout << param.second << "\n";
 		}
 		std::cout << "\n";
@@ -31,8 +35,9 @@ void Configuration::ListConfig(std::string filter) {
 void Configuration::LoadConfig() {
 	std::string submodule, paramLine;
 	std::ifstream config("config.ini");
-	while (config.eof() == false) {
+	while (!config.eof()) {
 		config >> paramLine;
+		if (paramLine.empty()) continue;
 		std::transform(paramLine.begin(), paramLine.end(), paramLine.begin(), std::tolower);
 
 		// Comment Line
@@ -57,22 +62,21 @@ void Configuration::LoadConfig() {
 
 void Kizuna::ErrorHandler() {
 	while (errorHandlerStatus != Offline) {
-		if (ErrorQueue.size() > 0) {
-			auto err = ErrorQueue.front();
-
-			for (auto& submodule : Kizuna::SubmoduleList) {
-				std::string name(submodule->Name());
-				if (err.source != submodule->Name()) continue;
-				std::cout << "\n"
-									<< err.source << " faulted\n"
-									<< err.what() << "\n"
-									<< "Status " << submodule->Status() << "\n";
-			}
-
-			ErrorQueue.pop();
-		} else {
+		if (ErrorQueue.empty()) {
 			std::this_thread::yield();
+			continue;
 		}
+
+		auto err = ErrorQueue.front();
+		for (auto& submodule : Kizuna::SubmoduleList) {
+			std::string name(submodule->Name());
+			if (err.source != submodule->Name()) continue;
+			std::cout << "\n"
+								<< err.source << " faulted\n"
+								<< err.what() << "\n"
+								<< "Status " << submodule->Status() << "\n";
+		}
+		ErrorQueue.pop();
 	}
 }
 void Kizuna::StartErrorHandler() {

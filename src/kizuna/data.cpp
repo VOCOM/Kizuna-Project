@@ -20,7 +20,7 @@ void DataTable::AddFeature(const std::string featureName) {
 	table.conservativeResize(NoChange, header.cols());
 	header(header.cols() - 1) = featureName;
 }
-void DataTable::AddElement(std::vector<double>& values) {
+void DataTable::AddElements(std::vector<double>& values) {
 	int count = values.size();
 	table.conservativeResize(table.rows() + 1, NoChange);
 	auto& newRow = table.row(Rows() - 1);

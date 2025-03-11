@@ -1,8 +1,8 @@
 #ifndef UNSUPERVISED
 #define UNSUPERVISED
 
-#include "results.hpp"
 #include <kizuna/data.hpp>
+#include <results.hpp>
 
 Results KMeans(DataTable& input, int k);
 

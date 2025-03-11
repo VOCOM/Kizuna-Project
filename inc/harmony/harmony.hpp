@@ -25,6 +25,7 @@ public:
 	virtual void Shell(std::string command, std::queue<std::string> params);
 
 	// Hardware Resources
+	static int CPUThreads() { return MAX_CPU_THREADS; }
 	static cl::Buffer& Buffer(int idx);
 	static cl::CommandQueue& Queue() { return hardwareQueue; }
 
@@ -52,6 +53,8 @@ private:
 	static int MAX_BUFFER_COUNT;
 	static int MAX_BUFFER_SIZE;
 
+	static cl::Device device;
+	static cl::Context context;
 	static std::vector<cl::Buffer> buffers;
 	static cl::CommandQueue hardwareQueue;
 	static cl::Kernel euclid;

@@ -19,6 +19,8 @@ int Harmony::MAX_GPU_THREADS;
 int Harmony::MAX_BUFFER_COUNT;
 int Harmony::MAX_BUFFER_SIZE;
 
+cl::Device Harmony::device;
+cl::Context Harmony::context;
 std::vector<cl::Buffer> Harmony::buffers;
 cl::CommandQueue Harmony::hardwareQueue;
 cl::Kernel Harmony::euclid;
@@ -88,7 +90,7 @@ void Harmony::LoadConfiguration() {
 	// Initialize buffers
 	while (buffers.size()) buffers.pop_back();
 	for (int i = 0; i < MAX_BUFFER_COUNT; i++)
-		buffers.push_back(cl::Buffer(GetContext(), CL_MEM_READ_WRITE, sizeof(int) * MAX_BUFFER_SIZE));
+		buffers.push_back(cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(double) * MAX_BUFFER_SIZE));
 }
 
 void Harmony::ShellHeader() {
@@ -103,11 +105,17 @@ void Harmony::ShellHeader() {
 	if (!results.Empty()) {
 		std::cout << "Results:\n";
 		auto headers = data.Header();
+
 		for (int c = 0; c < headers.size(); c++) {
-			std::cout << '[' << headers[c] << "] ";
-			auto values = results.clusters[c];
-			for (int i = 0; i < values.cols(); i++) {
-				std::cout << values(i) << " ";
+			std::cout << '[' << headers[c] << "]\n";
+
+			auto values   = results.clusters[c];
+			int entries   = values.rowwise().count().count();
+			int dimension = values.cols();
+			for (int i = 0; i < entries; i++) {
+				for (int j = 0; j < dimension; j++)
+					std::cout << values(i, j) << " ";
+				std::cout << "\n";
 			}
 			std::cout << "\n";
 		}
@@ -131,7 +139,7 @@ void Harmony::Shell(std::string command, std::queue<std::string> params) {
 			std::vector<std::string> stringValues = Split(line, ',');
 			std::vector<double> values;
 			for (auto& v : stringValues) values.push_back(std::stod(v));
-			for (auto& header : headers) data.AddElements(values);
+			data.AddElements(values);
 		}
 	}
 	if (command == "run") {
@@ -154,8 +162,9 @@ Harmony::Harmony() : Submodule("Harmony") {
 	}
 
 	// Generate Context
-	cl::Device device = cl::Device::getDefault();
-	cl::Context context(device);
+	context = cl::Context(device);
+	if (cl::Context::setDefault(context) != context)
+		std::cout << "Error Setting Default Context.\n";
 
 	// Initialize Queue
 	hardwareQueue = cl::CommandQueue(context, device);
@@ -168,8 +177,13 @@ Harmony::Harmony() : Submodule("Harmony") {
 	}
 
 	// Load Kernel Functions
-	euclid   = cl::Kernel(core_program, "euclideanDistance");
-	centroid = cl::Kernel(core_program, "centroid");
+	int ret;
+	euclid = cl::Kernel(core_program, "euclideanDistance", &ret);
+	if (ret != CL_SUCCESS)
+		std::cout << "Failed to load Euclidean Distance kernel. Code " << ret << "\n";
+	centroid = cl::Kernel(core_program, "centroid", &ret);
+	if (ret != CL_SUCCESS)
+		std::cout << "Failed to load Centroid kernel. Code " << ret << "\n";
 }
 Harmony::~Harmony() {
 	Stop();
@@ -199,7 +213,7 @@ void Harmony::Loop() {
 }
 cl::Buffer& Harmony::Buffer(int idx) {
 	if (idx > MAX_BUFFER_COUNT) throw new std::exception();
-	hardwareQueue.enqueueFillBuffer(buffers[idx], 0, 0, sizeof(int) * MAX_BUFFER_SIZE);
+	hardwareQueue.enqueueFillBuffer(buffers[idx], 0, 0, sizeof(double) * MAX_BUFFER_SIZE);
 	return buffers[idx];
 }
 
@@ -227,7 +241,9 @@ bool Harmony::LoadDevice(uint8_t cl_device_type) {
 
 	for (auto& d : devices) {
 		if (d.getInfo<CL_DEVICE_TYPE>() != cl_device_type) continue;
-		cl::Device::setDefault(d);
+		if (cl::Device::setDefault(d) != d)
+			std::cout << "Error Setting default device.\n";
+		device = d;
 		return true;
 	}
 	return false;

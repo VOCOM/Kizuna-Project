@@ -70,10 +70,8 @@ void DataTable::ShortInfo(int count) {
 	std::cout << '\n';
 
 	for (int row = 0; row < std::min(count, rows); row++) {
-		for (int col = 0; col < cols; col++) {
-			double val = table(row, col);
-			std::cout << std::setw(colWidths[col] + 1) << val << " ";
-		}
+		for (int col = 0; col < cols; col++)
+			std::cout << std::setw(colWidths[col] + 1) << table(row, col) << " ";
 		std::cout << '\n';
 	}
 

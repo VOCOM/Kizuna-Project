@@ -10,6 +10,8 @@
 #include <harmony.hpp>
 #include <webserver.hpp>
 
+#include <unsupervised.hpp>
+
 void HelpCommand(std::queue<std::string>& params) {}
 void ConfigCommand(std::queue<std::string>& params) {
 	std::string filter;
@@ -42,26 +44,6 @@ int main(int argc, char** argv) {
 	Kizuna::LoadSubmodule(std::make_shared<WebServer>());
 	Kizuna::LoadSubmodule(std::make_shared<Harmony>());
 
-	// DataTable data;
-	// int c = 50;
-	// std::vector<double> feature1, feature2, feature3, feature4;
-	// for (int i = 0; i < c; i++) {
-	// 	feature1.push_back(std::rand() % 99 + 0.1);
-	// 	feature2.push_back(std::rand() % 99 + 0.1);
-	// 	feature3.push_back(std::rand() % 99 + 0.1);
-	// 	feature4.push_back(std::rand() % 99 + 0.1);
-	// }
-	// std::cout << feature1.size() << "\n";
-	// data.AddFeature("Feature 1");
-	// data.AddFeature("Feature 2");
-	// data.AddFeature("Feature 3");
-	// data.AddFeature("Feature 4");
-	// for (int i = 0; i < c; i++) {
-	// 	std::vector<double> row = {feature1[i], feature2[i], feature3[i], feature4[i]};
-	// 	data.AddElements(row);
-	// }
-	// data.Info();
-
 	bool running = true;
 	std::string buffer, command;
 	while (running) {
@@ -87,25 +69,4 @@ int main(int argc, char** argv) {
 	}
 
 	Kizuna::Shutdown();
-
-	// Timer timer;
-	// DataTable data;
-	// int c = 10000;
-	// std::vector<double> feature1, feature2, feature3, feature4;
-	// for (int i = 0; i < c; i++) {
-	// 	feature1.push_back(std::rand() % 99 + 0.1);
-	// 	feature2.push_back(std::rand() % 99 + 0.1);
-	// 	feature3.push_back(std::rand() % 99 + 0.1);
-	// 	feature4.push_back(std::rand() % 99 + 0.1);
-	// }
-	// data.AddFeature("Feature 1", feature1);
-	// data.AddFeature("Feature 2", feature2);
-	// data.AddFeature("Feature 3", feature3);
-	// data.AddFeature("Feature 4", feature4);
-	// // data.Info();
-	// std::cout << "\nElement Count: " << c << "\n";
-	// timer.Start();
-	// Clusters clusters = KMeans(4, data);
-	// timer.Stop();
-	// std::cout << "GPU KMeans: " << timer.DurationS() << "s\n\n";
 }

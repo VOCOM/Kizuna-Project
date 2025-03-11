@@ -14,16 +14,26 @@
 
 using namespace Eigen;
 
-void LoadCluster(const int start, const int end, const int N, const int dim, cl::Buffer index, cl::Buffer points, Clusters& clusters) {
+std::vector<bool> locks;
+
+void LoadCluster(const int start, const int end, const int N, const int dim, cl::Buffer index, cl::Buffer points, std::shared_ptr<Clusters> clusters) {
 	auto queue = Harmony::Queue();
 	for (int i = start, c = 0; i < end; i++) {
+		// Find cluster
 		queue.enqueueReadBuffer(index, CL_TRUE, sizeof(int) * i, sizeof(int), &c);
+
+		// Load point
 		RowVector<double, Dynamic> point(dim);
 		for (int n = 0; n < dim; n++)
 			queue.enqueueReadBuffer(points, CL_TRUE, sizeof(double) * (n * N + i), sizeof(double), point.data() + n);
-		auto& cluster     = clusters[c];
+
+		// Append to cluster
+		while (locks[c]) std::this_thread::yield();
+		locks[c]          = true;
+		auto& cluster     = (*clusters)[c];
 		int rows          = cluster.rowwise().count().count();
 		cluster.row(rows) = point;
+		locks[c]          = false;
 	}
 }
 
@@ -32,14 +42,14 @@ Results KMeans(DataTable& input, int k) {
 	// if (input.Size() * k > Harmony::BufferInfo().second)
 	// 	throw new std::exception("Insufficient Buffer Space!");
 
+	int ret;
 	const int maxEntries = input.Rows();
 	const int dimensions = input.Cols();
 	const auto pts       = input.Data().transpose().array();
 	std::vector<int> clusterIndexes(maxEntries);
 
-	Matrix<double, Dynamic, Dynamic> centroids(k, dimensions), newCentroids(k, dimensions);
-	Results result;
-	result.clusters = Clusters(k, maxEntries, dimensions);
+	Matrix<double, Dynamic, Dynamic> centroids(k, dimensions);
+	Matrix<double, Dynamic, Dynamic> newCentroids(k, dimensions);
 
 	// Initialize Clusters & Centroids
 	for (int i = 0; i < k; i++)
@@ -52,7 +62,8 @@ Results KMeans(DataTable& input, int k) {
 	auto buffer3 = Harmony::Buffer(2); // Cluster Index [int]
 
 	// Fill Buffer 1 with points [double]
-	queue.enqueueWriteBuffer(buffer1, CL_TRUE, 0, sizeof(double) * pts.count(), pts.data());
+	ret = queue.enqueueWriteBuffer(buffer1, CL_TRUE, 0, sizeof(double) * pts.count(), pts.data());
+	if (ret != CL_SUCCESS) std::cout << "Error Filling Buffer 1. Code " << ret << "\n";
 
 #if DEBUG
 	int n                 = 0;
@@ -68,7 +79,8 @@ Results KMeans(DataTable& input, int k) {
 		auto buffer4 = Harmony::Buffer(3); // New Centroids [double]
 
 		// Fill Buffer 2 with centroids [double]
-		queue.enqueueWriteBuffer(buffer2, CL_TRUE, 0, sizeof(double) * centroids.count(), centroids.data());
+		ret = queue.enqueueWriteBuffer(buffer2, CL_TRUE, 0, sizeof(double) * centroids.count(), centroids.data());
+		if (ret != CL_SUCCESS) std::cout << "Error Filling Buffer 2. Code " << ret << "\n";
 
 		// Select Euclidean Distance Kernel
 		// (Points, Centroids, Index, Dimensions, K)
@@ -80,7 +92,8 @@ Results KMeans(DataTable& input, int k) {
 		kernel.setArg(4, k);
 
 		// Execute Kernel
-		queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(maxEntries));
+		ret = queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(maxEntries));
+		if (ret != CL_SUCCESS) std::cout << "Error executing Distance. Code " << ret << "\n";
 		queue.finish();
 
 		// Select Centroid Kernel
@@ -93,7 +106,8 @@ Results KMeans(DataTable& input, int k) {
 		kernel.setArg(4, maxEntries);
 
 		// Execute Kernel
-		queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(k));
+		ret = queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(k));
+		if (ret != CL_SUCCESS) std::cout << "Error executing Centroid. Code " << ret << "\n";
 		queue.finish();
 
 		// Read New Centroids
@@ -120,16 +134,20 @@ Results KMeans(DataTable& input, int k) {
 #endif
 
 	// Load Clusters [Multi-CPU]
-	int maxThreads = std::thread::hardware_concurrency();
+	Results result;
+	auto clusters = std::make_shared<Clusters>(k, maxEntries, dimensions);
+	locks.resize(k);
+
+	int maxThreads = Harmony::CPUThreads();
 	int step       = std::ceil(maxEntries / static_cast<double>(maxThreads));
-	std::vector<std::thread> threadpool;
+	std::vector<std::thread> threadpool(maxThreads);
+
 	for (int i = 0; i < maxThreads; i++) {
-		int start = i * step;
-		int end   = std::min(start + step, maxEntries);
-		threadpool.push_back(std::thread(LoadCluster, start, end, maxEntries, dimensions, buffer3, buffer1, result.clusters));
+		int start     = i * step;
+		int end       = std::min(start + step, maxEntries);
+		threadpool[i] = std::thread(LoadCluster, start, end, maxEntries, dimensions, buffer3, buffer1, clusters);
 	}
-	for (auto& thread : threadpool)
-		thread.join();
+	for (auto& thread : threadpool) thread.join();
 
 #ifdef DEBUG
 	timer.Stop();
@@ -140,6 +158,7 @@ Results KMeans(DataTable& input, int k) {
 	std::cout << "Buffering Time " << bufferTime << "ms\n";
 #endif
 
-	result.empty = false;
+	result.clusters = *clusters;
+	result.empty    = false;
 	return result;
 }

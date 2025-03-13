@@ -37,15 +37,16 @@ void LoadCluster(const int start, const int end, const int N, const int dim, cl:
 	}
 }
 
-Results KMeans(DataTable& input, int k) {
+void KMeansc::Execute() {
 	// Check from within Harmony
 	// if (input.Size() * k > Harmony::BufferInfo().second)
 	// 	throw new std::exception("Insufficient Buffer Space!");
+	lock = true;
 
 	int ret;
-	const int maxEntries = input.Rows();
-	const int dimensions = input.Cols();
-	const auto pts       = input.Data().transpose().array();
+	const int maxEntries      = data.Rows();
+	const int dimensions      = data.Cols();
+	const DataTable::Data pts = data.GetData().transpose();
 	std::vector<int> clusterIndexes(maxEntries);
 
 	Matrix<double, Dynamic, Dynamic> centroids(k, dimensions);
@@ -53,7 +54,7 @@ Results KMeans(DataTable& input, int k) {
 
 	// Initialize Clusters & Centroids
 	for (int i = 0; i < k; i++)
-		centroids.row(i) = input.GetRow(i);
+		centroids.row(i) = data.GetRow(i);
 
 	// Get Master Queue
 	auto queue   = Harmony::Queue();
@@ -134,7 +135,6 @@ Results KMeans(DataTable& input, int k) {
 #endif
 
 	// Load Clusters [Multi-CPU]
-	Results result;
 	auto clusters = std::make_shared<Clusters>(k, maxEntries, dimensions);
 	locks.resize(k);
 
@@ -160,5 +160,5 @@ Results KMeans(DataTable& input, int k) {
 
 	result.clusters = *clusters;
 	result.empty    = false;
-	return result;
+	lock            = false;
 }

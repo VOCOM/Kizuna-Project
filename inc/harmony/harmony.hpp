@@ -8,9 +8,9 @@
 #define CL_HPP_TARGET_OPENCL_VERSION 300
 #include <CL/opencl.hpp>
 
-#include <kizuna/data.hpp>
+#include <data.hpp>
 #include <kizuna/kizuna.hpp>
-#include <results.hpp>
+#include <model.hpp>
 
 class Harmony : public Submodule {
 public:
@@ -60,10 +60,10 @@ private:
 	static cl::Kernel euclid;
 	static cl::Kernel centroid;
 
-	static std::atomic_bool dataLock;
-	static DataTable data;
-	static Results results;
-	static std::queue<Results (*)(DataTable&, int)> runQueue;
+	static DataTable holdingData;
+	static std::shared_ptr<Model> currentModel;
+	static std::queue<std::shared_ptr<Model>> runQueue;
+	static std::vector<std::shared_ptr<Model>> completedQueue;
 };
 
 #endif /* HARMONY */

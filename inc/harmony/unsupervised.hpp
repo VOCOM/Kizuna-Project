@@ -1,9 +1,18 @@
 #ifndef UNSUPERVISED
 #define UNSUPERVISED
 
-#include <kizuna/data.hpp>
+#include <data.hpp>
+#include <model.hpp>
 #include <results.hpp>
 
-Results KMeans(DataTable& input, int k);
+class KMeansc : public Model {
+public:
+	virtual void Execute();
+
+	KMeansc() : Model("KMeans") {}
+
+public:
+	int k;
+};
 
 #endif /* UNSUPERVISED */

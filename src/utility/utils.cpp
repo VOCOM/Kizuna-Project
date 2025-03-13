@@ -35,3 +35,12 @@ std::queue<std::string> Enqueue(std::string& buffer) {
 	for (auto& param : paramList) params.push(param);
 	return params;
 }
+
+int Digits(int number) {
+	int digits = 1;
+	while (number > 0) {
+		number /= 10;
+		digits++;
+	}
+	return digits;
+}

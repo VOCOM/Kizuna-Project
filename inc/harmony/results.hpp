@@ -25,32 +25,19 @@ private:
 	std::vector<RowMatrix> clusters;
 };
 
-struct Results {
-	enum Type {
-		Unsupervised,
-		Supervised,
-		NeuralNet
-	};
+class Results {
+public:
+	// Kmeans -> List of clusters
+	using Row = Eigen::Matrix<double, 1, Eigen::Dynamic>;
 
-	// Unsupervised
 	Clusters clusters;
-	// Supervised
 	// Neural Network
-
-	Type type = Unsupervised;
-	std::string Type() {
-		switch (type) {
-		case Supervised:
-			return "Supervised";
-		case NeuralNet:
-			return "NeuralNet";
-		default:
-			return "Unsupervised";
-		}
-	}
 
 	bool empty = true;
 	bool Empty() { return empty; }
+
+private:
+	std::vector<Row> clusterss;
 };
 
 #endif /* RESULTS */

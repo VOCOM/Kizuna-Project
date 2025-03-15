@@ -1,7 +1,9 @@
 #ifndef LAYERS
 #define LAYERS
 
+#include <iostream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #define CL_HPP_TARGET_OPENCL_VERSION 300
@@ -45,12 +47,15 @@ public:
 	}
 
 	ClassificationLayer(DataTable& data) {
-		depth = data.Count();
-		// truth = data.Labels;
+		DataTable::Header labels = data.GetLabel();
+		std::unordered_map<std::string, int> map;
+		for (auto& label : labels) map[label]++;
+		for (auto& kv : map) depth++;
+		prediction.resize(depth);
 	}
 
 private:
-	int depth;
+	int depth = 0;
 	std::vector<int> truth;
 	std::vector<int> prediction;
 };

@@ -14,6 +14,8 @@ void NeuralNet::Info(int count) {
 void NeuralNet::Train(int maxThreads) {
 	lock = true;
 
+	layers.push_back(std::make_unique<ClassificationLayer>(data));
+
 	int epoch  = 1;
 	auto input = Harmony::Buffer(0);
 	for (int i = 0; i < epoch; i++) {
@@ -22,6 +24,11 @@ void NeuralNet::Train(int maxThreads) {
 		// # TODO
 		input = BackPropagate(input);
 	}
+
+	std::vector<double> o(2);
+	auto queue = Harmony::Queue();
+	queue.enqueueReadBuffer(input, CL_TRUE, 0, sizeof(double) * 2, o.data());
+	for (auto d : o) std::cout << d << "\n";
 
 	lock = false;
 }
@@ -35,7 +42,6 @@ NeuralNet::NeuralNet() {
 }
 
 cl::Buffer NeuralNet::FeedForward(cl::Buffer input) {
-	layers.push_back(std::make_unique<ClassificationLayer>(data));
 	DataTable::Data inputData = data.GetData().transpose();
 
 	int count  = data.Cols();

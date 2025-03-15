@@ -8,15 +8,22 @@
 
 using namespace std::placeholders;
 
-struct Replace {
-	char operator()(char& c) { return c == delimiter ? ' ' : c; }
-	static char delimiter;
-};
-char Replace::delimiter;
+char delimiter, token;
+void ReplaceToken(std::string& input, const char delim, const char c) {
+	delimiter = delim;
+	token     = c;
+	std::transform(input.begin(), input.end(), input.begin(), [](char& c) { return c == delimiter ? token : c; });
+}
+
+int sum = 0;
+bool IsNumerical(std::string& input) {
+	sum = 0;
+	std::for_each(input.begin(), input.end(), [](char& c) { sum += std::isalpha(c); });
+	return !sum;
+}
 
 std::vector<std::string> Split(std::string& input, const char delim) {
-	Replace::delimiter = delim;
-	std::transform(input.begin(), input.end(), input.begin(), Replace());
+	ReplaceToken(input, delim);
 	std::stringstream ss(input);
 
 	std::string param;

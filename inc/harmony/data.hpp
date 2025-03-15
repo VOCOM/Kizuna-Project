@@ -17,7 +17,11 @@ public: // Table Information
 	int Size() const { return data.size(); }
 	int Count() const { return data.rowwise().count().count(); }
 
+	bool ContainsHeaders() const { return header.cols(); }
+	bool ContainsLabels() const { return label.cols(); }
+
 	Header GetHeader() const { return header; }
+	Header GetLabel() const { return label; }
 	Index GetIndex() const { return index; }
 	Data GetData() const { return data; }
 
@@ -32,13 +36,14 @@ public: // Accessors
 public: // Table Operations
 	void InsertFeature(const std::string featureName);
 	void InsertEntry(std::vector<double>& values);
-	void LoadCSV(std::string filepath, bool hasHeaders = true);
+	void LoadCSV(std::string filepath);
 	void DropData() { data.setZero(0, 0); }
 
 	DataTable() {}
 
 private:
 	Header header;
+	Header label;
 	Index index;
 	Data data;
 };

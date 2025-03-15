@@ -18,7 +18,7 @@ void DataTable::InsertEntry(std::vector<double>& values) {
 	int count   = values.size();
 	int newRows = Rows() + 1;
 	index.conservativeResize(newRows + 1, NoChange);
-	data.conservativeResize(newRows, NoChange);
+	data.conservativeResize(newRows, count);
 
 	auto row = GetRow(newRows - 1);
 	for (int col = 0; col < Cols(); col++) {
@@ -28,30 +28,44 @@ void DataTable::InsertEntry(std::vector<double>& values) {
 	index(newRows) = newRows;
 }
 
-void DataTable::LoadCSV(std::string filepath, bool hasHeaders) {
+void DataTable::LoadCSV(std::string filepath) {
 	std::ifstream fs(filepath);
 	if (!fs.is_open()) {
 		std::cout << "Failed to read file: " << filepath << "\n";
 		return;
 	}
 
+	bool headerRow = true;
 	std::string line;
 	while (!fs.eof()) {
 		fs >> line;
 		auto stringValues = Split(line, ',');
 		int count         = stringValues.size();
 		if (count == 0) continue;
+		ReplaceToken(line, ',');
 
-		if (hasHeaders) {
-			for (int i = 0; i < count; i++)
-				InsertFeature(stringValues[i]);
-			hasHeaders = false;
-		} else {
-			std::vector<double> values(count);
-			for (int i = 0; i < count; i++)
-				values[i] = std::stod(stringValues[i]);
-			InsertEntry(values);
+		// Header
+		if (headerRow) {
+			headerRow = false;
+			if (IsNumerical(line)) continue;
+			for (auto& value : stringValues)
+				InsertFeature(value);
+			continue;
 		}
+
+		// Entry
+		std::vector<double> values;
+		for (int i = 0; i < count; i++) {
+			if (IsNumerical(stringValues[i])) {
+				values.push_back(std::stod(stringValues[i]));
+			} else {
+				int newCols = label.cols() + 1;
+				label.conservativeResize(newCols);
+				label(newCols - 1) = stringValues[i];
+			}
+		}
+
+		InsertEntry(values);
 	}
 }
 
@@ -61,7 +75,7 @@ void DataTable::Info(int count) {
 
 	// Column Width
 	for (int row = 0; row < rows; row++) {
-		if (row == 0) {
+		if (ContainsHeaders() && row == 0) {
 			for (int col = 0; col < cols; col++)
 				colWidths[col + 1] = header(col).size();
 		} else {
@@ -73,13 +87,15 @@ void DataTable::Info(int count) {
 	}
 
 	// Header
-	std::cout << std::setw(colWidths[0]) << "";
-	for (int col = 0; col < cols; col++) {
-		std::cout << " ";
-		std::cout << std::setw(colWidths[col + 1]) << header(col);
-		std::cout << "";
+	if (ContainsHeaders()) {
+		std::cout << std::setw(colWidths[0]) << "";
+		for (int col = 0; col < cols; col++) {
+			std::cout << " ";
+			std::cout << std::setw(colWidths[col + 1]) << header(col);
+			std::cout << "";
+		}
+		std::cout << '\n';
 	}
-	std::cout << '\n';
 
 	// Entries
 	if (count < 0) count = rows;
@@ -97,21 +113,8 @@ void DataTable::Info(int count) {
 								<< std::setw(colWidths[col])
 								<< (col == 0 ? index(row + 1) : data(row, col - 1));
 		}
+		if (ContainsLabels())
+			std::cout << " " << label(row);
 		std::cout << '\n';
 	}
-
-	// Entry filler
-	// if (rows > count) {
-	// 	int width = 0;
-	// 	for (auto w : colWidths) width += w + 1;
-	// 	std::cout << std::setw(width) << std::setfill('.') << "\n";
-
-	// 	for (int col = 0; col < cols + 1; col++) {
-	// 		if (col != 0) std::cout << " ";
-	// 		std::cout << std::setfill(' ')
-	// 							<< std::setw(colWidths[col])
-	// 							<< (col == 0 ? index(rows) : data(rows - 1, col - 1));
-	// 	}
-	// }
-	// std::cout << "\n";
 }

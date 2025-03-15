@@ -34,6 +34,26 @@ public:
 private:
 	int depth;
 };
+class ClassificationLayer : public Layer {
+public:
+	virtual std::string Name() const { return "Classification Layer"; }
+	virtual int Depth() const { return depth; }
+	virtual std::vector<double> Weights() const { return std::vector<double>(depth); }
+
+	virtual cl::Buffer Compute(cl::Buffer input, std::vector<double> inputWeights, int count) {
+		return input;
+	}
+
+	ClassificationLayer(DataTable& data) {
+		depth = data.Count();
+		// truth = data.Labels;
+	}
+
+private:
+	int depth;
+	std::vector<int> truth;
+	std::vector<int> prediction;
+};
 
 class ReLuLayer : public Layer {
 public:
@@ -49,4 +69,5 @@ private:
 	std::vector<double> bias;
 	std::vector<double> outputWeights;
 };
+
 #endif /* LAYERS */

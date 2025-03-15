@@ -14,10 +14,13 @@ void NeuralNet::Info(int count) {
 void NeuralNet::Train(int maxThreads) {
 	lock = true;
 
-	int epoch = 1;
+	int epoch  = 1;
+	auto input = Harmony::Buffer(0);
 	for (int i = 0; i < epoch; i++) {
-		FeedForward();
-		BackPropagate();
+		input = FeedForward(input);
+
+		// # TODO
+		input = BackPropagate(input);
 	}
 
 	lock = false;
@@ -31,12 +34,12 @@ NeuralNet::NeuralNet() {
 	layers.push_back(std::make_unique<InputLayer>());
 }
 
-void NeuralNet::FeedForward() {
+cl::Buffer NeuralNet::FeedForward(cl::Buffer input) {
+	layers.push_back(std::make_unique<ClassificationLayer>(data));
 	DataTable::Data inputData = data.GetData().transpose();
 
 	int count  = data.Cols();
 	auto queue = Harmony::Queue();
-	auto input = Harmony::Buffer(0);
 	int ret    = queue.enqueueWriteBuffer(input, CL_TRUE, 0, sizeof(double) * count, inputData.data());
 	if (ret != CL_SUCCESS) std::cout << "Error Filling Input buffer. Code " << ret << "\n";
 
@@ -46,8 +49,12 @@ void NeuralNet::FeedForward() {
 		input   = layer->Compute(input, weights, count);
 		count   = layer->Depth();
 		weights = layer->Weights();
+		std::cout << layer->Name() << "\n";
 	}
+
+	return input;
 }
 
-void NeuralNet::BackPropagate() {
+cl::Buffer NeuralNet::BackPropagate(cl::Buffer input) {
+	return input;
 }

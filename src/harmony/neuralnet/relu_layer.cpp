@@ -35,6 +35,7 @@ cl::Buffer ReLuLayer::Compute(cl::Buffer inputs, std::vector<double> inputWeight
 
 	// Bind Kernel Parameters (Activation)
 	kernel = Harmony::ReLu();
+	inputs = Harmony::Buffer(0);
 	kernel.setArg(0, outputs);
 	kernel.setArg(1, inputs);
 
@@ -42,9 +43,6 @@ cl::Buffer ReLuLayer::Compute(cl::Buffer inputs, std::vector<double> inputWeight
 	ret = queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(depth));
 	if (ret != CL_SUCCESS) std::cout << "Error executing " << Name() << ". Code " << ret << "\n";
 	queue.finish();
-
-	inputs = Harmony::Buffer(0);
-	ret    = queue.enqueueCopyBuffer(outputs, inputs, 0, 0, sizeof(double) * depth);
 
 	return inputs;
 }

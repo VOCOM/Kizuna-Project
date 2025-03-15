@@ -22,8 +22,8 @@ public:
 	NeuralNet();
 
 private:
-	void FeedForward();
-	void BackPropagate();
+	cl::Buffer FeedForward(cl::Buffer input);
+	cl::Buffer BackPropagate(cl::Buffer input);
 
 private:
 	std::atomic_bool lock;

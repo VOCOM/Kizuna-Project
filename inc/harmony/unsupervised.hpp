@@ -5,14 +5,22 @@
 #include <model.hpp>
 #include <results.hpp>
 
-class KMeansc : public Model {
+class KMeans : public Model {
 public:
-	virtual void Execute();
+	virtual std::string Name() { return "Kmeans"; }
+	virtual void Load(DataTable& newData) { data = DataTable(newData); }
+	virtual void Info(int count = -1);
 
-	KMeansc() : Model("KMeans") {}
+	virtual void Train(int maxThreads);
+	virtual void Test(int maxThreads);
+
+	virtual Results Result();
 
 public:
 	int k;
+	std::atomic_bool lock;
+	DataTable data;
+	Clusters clusters;
 };
 
 #endif /* UNSUPERVISED */

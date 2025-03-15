@@ -44,3 +44,10 @@ int Digits(int number) {
 	}
 	return digits;
 }
+
+std::string ToString(StatusCode& status) {
+	return status == Online    ? "Online"
+	       : status == Busy    ? "Busy"
+	       : status == Faulted ? "Faulted"
+	                           : "Offline";
+}

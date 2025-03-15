@@ -8,30 +8,36 @@
 #define CL_HPP_TARGET_OPENCL_VERSION 300
 #include <CL/opencl.hpp>
 
+#include <kizuna/error_emitter.hpp>
+#include <kizuna/module.hpp>
+#include <utility/utils.hpp>
+
 #include <data.hpp>
-#include <kizuna/kizuna.hpp>
 #include <model.hpp>
 
-class Harmony : public Submodule {
+class Harmony : public Module, public ErrorEmitter {
 public:
 	// Submodule Interface
+	virtual std::string Name() { return "Harmony"; }
+	virtual std::string Status() { return ToString(status); }
 	virtual void Info();
 	virtual void Start();
 	virtual void Stop();
 	virtual void Restart();
 	virtual void LoadConfiguration();
 
-	virtual void ShellHeader();
-	virtual void Shell(std::string command, std::queue<std::string> params);
+	// Kernel Interface
+	virtual void Access();
 
 	// Hardware Resources
-	static int CPUThreads() { return MAX_CPU_THREADS; }
 	static cl::Buffer& Buffer(int idx);
 	static cl::CommandQueue& Queue() { return hardwareQueue; }
 
 	// Hardware Functions
 	static cl::Kernel& Distance() { return euclid; }
 	static cl::Kernel& Centroid() { return centroid; }
+	static cl::Kernel& Perceptron() { return perceptron; }
+	static cl::Kernel& ReLu() { return relu; }
 
 	Harmony();
 	virtual ~Harmony();
@@ -39,17 +45,11 @@ public:
 private:
 	void Loop();
 
-	static cl::Context GetContext() { return cl::Context(cl::Device::getDefault()); }
-	static bool LoadPlatform();
-	static bool LoadDevice(uint8_t cl_device_type);
-	static bool BuildProgram(cl::Context& context, cl::Device& device, std::string source_path, cl::Program& program);
+	bool LoadPlatform();
+	bool LoadDevice(uint8_t cl_device_type);
+	bool BuildProgram(cl::Context& context, cl::Device& device, std::string source_path, cl::Program& program);
 
-private:
-	static std::thread mainThread;
-	static std::vector<std::thread> workerThreads;
-
-	static int MAX_CPU_THREADS;
-	static int MAX_GPU_THREADS;
+private: // Global Variables
 	static int MAX_BUFFER_COUNT;
 	static int MAX_BUFFER_SIZE;
 
@@ -59,11 +59,22 @@ private:
 	static cl::CommandQueue hardwareQueue;
 	static cl::Kernel euclid;
 	static cl::Kernel centroid;
+	static cl::Kernel perceptron;
+	static cl::Kernel relu;
 
-	static DataTable holdingData;
-	static std::shared_ptr<Model> currentModel;
-	static std::queue<std::shared_ptr<Model>> runQueue;
-	static std::vector<std::shared_ptr<Model>> completedQueue;
+private:
+	int maxCpuThreads;
+	int maxGpuThreads;
+
+	StatusCode status;
+	std::atomic_bool lock;
+	std::thread mainThread;
+	std::vector<std::thread> workerThreads;
+
+	DataTable holdingData;
+	std::shared_ptr<Model> currentModel;
+	std::queue<std::shared_ptr<Model>> runQueue;
+	std::vector<std::shared_ptr<Model>> completedQueue;
 };
 
 #endif /* HARMONY */

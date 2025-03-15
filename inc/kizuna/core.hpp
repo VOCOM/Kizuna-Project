@@ -2,7 +2,7 @@
 #define CORE
 
 #include "configuration.hpp"
-#include "exceptions.hpp"
+#include "errors.hpp"
 #include "kizuna.hpp"
 
 #endif /* CORE */

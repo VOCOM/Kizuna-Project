@@ -1,7 +1,9 @@
-#include <harmony/unsupervised.hpp>
+#include <unsupervised.hpp>
 
 // C++ Headers
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -37,7 +39,12 @@ void LoadCluster(const int start, const int end, const int N, const int dim, cl:
 	}
 }
 
-void KMeansc::Execute() {
+void KMeans::Info(int count) {
+	std::cout << "Kmeans " << k << " clusters\n";
+	data.Info(count);
+}
+
+void KMeans::Train(int maxThreads) {
 	// Check from within Harmony
 	// if (input.Size() * k > Harmony::BufferInfo().second)
 	// 	throw new std::exception("Insufficient Buffer Space!");
@@ -135,17 +142,16 @@ void KMeansc::Execute() {
 #endif
 
 	// Load Clusters [Multi-CPU]
-	auto clusters = std::make_shared<Clusters>(k, maxEntries, dimensions);
+	clusters = Clusters(k, maxEntries, dimensions);
 	locks.resize(k);
 
-	int maxThreads = Harmony::CPUThreads();
-	int step       = std::ceil(maxEntries / static_cast<double>(maxThreads));
+	int step = std::ceil(maxEntries / static_cast<double>(maxThreads));
 	std::vector<std::thread> threadpool(maxThreads);
 
 	for (int i = 0; i < maxThreads; i++) {
 		int start     = i * step;
 		int end       = std::min(start + step, maxEntries);
-		threadpool[i] = std::thread(LoadCluster, start, end, maxEntries, dimensions, buffer3, buffer1, clusters);
+		threadpool[i] = std::thread(LoadCluster, start, end, maxEntries, dimensions, buffer3, buffer1, std::make_shared<Clusters>(clusters));
 	}
 	for (auto& thread : threadpool) thread.join();
 
@@ -158,7 +164,13 @@ void KMeansc::Execute() {
 	std::cout << "Buffering Time " << bufferTime << "ms\n";
 #endif
 
-	result.clusters = *clusters;
-	result.empty    = false;
-	lock            = false;
+	lock = false;
+}
+void KMeans::Test(int maxThreads) {
+}
+
+Results KMeans::Result() {
+	Results r;
+	r.clusters = clusters;
+	return r;
 }

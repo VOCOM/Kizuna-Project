@@ -8,17 +8,21 @@
 #include <thread>
 
 #include <kizuna/kizuna.hpp>
+#include <utility/utils.hpp>
 
-class WebServer : public Submodule {
+class WebServer : public Module {
 public:
 	// Submodule Interface
+	virtual std::string Name() { return "Webserver"; }
+	virtual std::string Status() { return ToString(status); }
 	virtual void Info();
 	virtual void Start();
 	virtual void Stop();
 	virtual void Restart();
 	virtual void LoadConfiguration();
 
-	virtual void Shell(std::string command, std::queue<std::string> params);
+	// Kernel Interface
+	virtual void Access();
 
 	WebServer();
 	virtual ~WebServer();
@@ -31,6 +35,8 @@ private:
 	std::string BuildContent();
 
 private:
+	StatusCode status;
+
 	static const uint64_t BUFFER_SIZE = 0xFFFF;
 	WSADATA wsaData;
 

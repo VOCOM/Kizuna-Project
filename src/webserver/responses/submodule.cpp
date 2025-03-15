@@ -8,10 +8,10 @@ namespace Responses {
 
 void Status(std::stringstream& ss) {
 	ss << "<!DOCTYPE html>";
-	for (auto& submodule : Kizuna::SubmoduleList) {
+	for (auto& module : Kizuna::ModuleList) {
 		ss << "<tr>"
-			 << "<td>" << submodule->Name() << "</td>"
-			 << "<td>" << submodule->Status() << "</td>"
+			 << "<td>" << module->Name() << "</td>"
+			 << "<td>" << module->Status() << "</td>"
 			 << "</tr>";
 	}
 }

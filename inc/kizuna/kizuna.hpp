@@ -1,33 +1,43 @@
 #ifndef KIZUNA
 #define KIZUNA
 
-#include <exception>
-#include <map>
-#include <memory>
 #include <queue>
 #include <string>
 #include <thread>
-#include <utility>
+#include <vector>
 
-#include "exceptions.hpp"
+#include "errors.hpp"
+#include "kernel.hpp"
+#include "module.hpp"
 #include "status.hpp"
-#include "submodule.hpp"
 
-class Kizuna {
+class Kizuna : public Kernel {
 public:
-	static void ErrorHandler();
-	static void StartErrorHandler();
-	static void StopErrorHandler();
+	void LoadModule(std::shared_ptr<Module>);
 
-	static void LoadSubmodule(std::shared_ptr<Submodule>);
-	static void Shutdown();
+	void Initialize();
+	void Shutdown();
 
-	static std::vector<std::shared_ptr<Submodule>> SubmoduleList;
+	~Kizuna() { Shutdown(); }
+
+public: // Kernel Interface
+	virtual void Access();
+
+private:
+	void HelpCommand(std::queue<std::string>& params);
+	void ConfigCommand(std::queue<std::string>& params);
+	void ModuleCommand(std::queue<std::string>& params, void (Module::*function)());
+
+public: // Error Handler
+	static std::vector<std::shared_ptr<Module>> ModuleList;
 	static std::queue<Error> ErrorQueue;
 
 private:
-	static StatusCode errorHandlerStatus;
-	static std::thread errorHandler;
+	void ErrorHandler();
+
+private:
+	StatusCode errorHandlerStatus;
+	std::thread errorHandler;
 };
 
 #endif /* KIZUNA */

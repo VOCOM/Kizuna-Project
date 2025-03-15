@@ -33,11 +33,7 @@ public:
 	Clusters clusters;
 	// Neural Network
 
-	bool empty = true;
-	bool Empty() { return empty; }
-
 private:
 	std::vector<Row> clusterss;
 };
-
 #endif /* RESULTS */

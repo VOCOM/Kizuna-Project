@@ -1,6 +1,8 @@
 #ifndef STATUS
 #define STATUS
 
+#include <string>
+
 enum StatusCode {
 	Offline,
 	Online,

@@ -38,3 +38,23 @@ kernel void centroid(global const double* points, global const int* indexes, glo
     centroids[id * N + n] /= count;
   }
 }
+
+// N == Input layer count
+kernel void perceptron(global const double* inputs,
+                       global const double* weights,
+                       const int N,
+                       global const double* biases,
+                       global double* output){
+const int id = get_global_id(0);
+
+double sum = 0;
+for(int i = 0; i < N; i++)
+  sum += inputs[i] * weights[i];
+output[id] = sum + biases[id];
+}
+
+kernel void relu(global const double* inputs, global double* outputs){
+const int id = get_global_id(0);
+const double EULER_NUMBER_L = 2.71828182845904523536;
+outputs[id] = 1.0 / (1.0 + pow(EULER_NUMBER_L, -inputs[id]));
+}

@@ -15,7 +15,7 @@ if(NOT DEFINED PLATFORM_TYPE)
 endif()
 
 # Define Target
-add_executable(${CMAKE_PROJECT_NAME} src/main.cpp src/kizuna/submodule.cpp)
+add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
 
 # Configure Modules
 add_subdirectory(src/utility)

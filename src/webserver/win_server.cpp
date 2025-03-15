@@ -10,7 +10,7 @@
 #include <responses.hpp>
 #include <utility/utils.hpp>
 
-// Public Methods
+// Submodule Interface
 void WebServer::Info() {
 	std::cout << "Submodule " << Name() << "\n";
 	std::cout << "Address " << nodename << ':' << port << "\n";
@@ -80,11 +80,27 @@ void WebServer::LoadConfiguration() {
 	nodename = config["nodename"];
 }
 
-void WebServer::Shell(std::string command, std::queue<std::string> params) {
+// Kernel Interface
+void WebServer::Access() {
+	std::string buffer, command;
+	std::queue<std::string> params;
+
+	while (true) {
+		// Input
+		std::cout << "Harmony: ";
+		std::getline(std::cin, buffer);
+		std::transform(buffer.begin(), buffer.end(), buffer.begin(), std::tolower);
+		params  = Enqueue(buffer);
+		command = params.front();
+		params.pop();
+
+		// Kernel Commands
+		if (command == "exit") return;
+	}
 }
 
 // Constructors
-WebServer::WebServer() : Submodule("Webserver") {
+WebServer::WebServer() {
 	// Initialize Winsock
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData)) {
 		std::cout << "Error initializing WS2_32.dll.\n";

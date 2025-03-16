@@ -39,7 +39,7 @@ public:
 
 	virtual ~Module() {}
 
-private:
+protected:
 	static std::vector<std::shared_ptr<Module>> modules;
 };
 

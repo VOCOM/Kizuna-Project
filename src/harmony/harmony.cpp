@@ -147,8 +147,6 @@ void Harmony::Access() {
 
 // Constructors
 Harmony::Harmony() : Emitter("Harmony") {
-	// modules.push_back(std::make_shared<Harmony>(*this));
-
 	// Load OpenCL Supported Hardware
 	if (LoadPlatform() == false) {
 		Raise("Error registering computing platform.");

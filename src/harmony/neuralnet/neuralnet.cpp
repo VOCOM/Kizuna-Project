@@ -42,7 +42,7 @@ NeuralNet::NeuralNet() {
 }
 
 cl::Buffer NeuralNet::FeedForward(cl::Buffer input) {
-	DataTable::Data inputData = data.GetData().transpose();
+	Data::RawData inputData = data.GetData().transpose();
 
 	int count  = data.Cols();
 	auto queue = Harmony::Queue();

@@ -17,7 +17,7 @@ public: // Kernel Interface
 public:
 	void Initialize();
 	void Shutdown();
-	void LoadModule(std::shared_ptr<Module> const& module);
+	void LoadModule(const std::shared_ptr<Module>& module);
 
 	~Kizuna();
 

@@ -2,12 +2,13 @@
 
 #include <WS2tcpip.h>
 
-#include <configuration.hpp>
 #include <fstream>
 #include <iostream>
-#include <responses.hpp>
 #include <sstream>
-#include <utils.hpp>
+
+#include <kizuna/configuration.hpp>
+#include <responses.hpp>
+#include <utility/utils.hpp>
 
 // Submodule Interface
 void WebServer::Info() {
@@ -100,8 +101,6 @@ void WebServer::Access() {
 
 // Constructors
 WebServer::WebServer() {
-	// modules.push_back(std::make_shared<WebServer>(*this));
-
 	// Initialize Winsock
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData)) {
 		std::cout << "Error initializing WS2_32.dll.\n";

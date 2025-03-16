@@ -6,8 +6,9 @@
 #include <sstream>
 
 #include <configuration.hpp>
-#include <errors/errors.hpp>
-#include <utils.hpp>
+#include <database/database_accessor.hpp>
+#include <errors/error_emitter.hpp>
+#include <utility/utils.hpp>
 
 void Kizuna::Access() {
 	std::string buffer, command;
@@ -45,7 +46,7 @@ void Kizuna::Shutdown() {
 	Module::Shutdown();
 	errorHandler.Stop();
 }
-void Kizuna::LoadModule(std::shared_ptr<Module> const& module) {
+void Kizuna::LoadModule(const std::shared_ptr<Module>& module) {
 	module->LoadConfiguration();
 	module->Start();
 	Module::GetModules().push_back(module);

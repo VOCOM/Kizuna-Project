@@ -12,12 +12,12 @@
 #include <kizuna/module.hpp>
 #include <utility/utils.hpp>
 
-#include <data.hpp>
+#include <database/database_accessor.hpp>
 #include <model.hpp>
 
-class Harmony : public Module, public Emitter {
+class Harmony : public Module, public Emitter, public DatabaseAccessor {
 public:
-	// Submodule Interface
+	// Module Interface
 	virtual std::string Name() { return "Harmony"; }
 	virtual std::string Status() { return ToString(status); }
 	virtual void Info();
@@ -26,7 +26,7 @@ public:
 	virtual void Restart();
 	virtual void LoadConfiguration();
 
-	// Kernel Interface
+	// Shell Interface
 	virtual void Access();
 
 	// Hardware Resources
@@ -71,7 +71,7 @@ private:
 	std::thread mainThread;
 	std::vector<std::thread> workerThreads;
 
-	DataTable holdingData;
+	Data holdingData;
 	std::shared_ptr<Model> currentModel;
 	std::queue<std::shared_ptr<Model>> runQueue;
 	std::vector<std::shared_ptr<Model>> completedQueue;

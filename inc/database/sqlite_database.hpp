@@ -45,9 +45,6 @@ public:
 	virtual ~SQLiteDB();
 
 private:
-	void Execute(std::string sql_stmt);
-
-private:
 	StatusCode status;
 	sqlite3* db;
 	std::string dbName;

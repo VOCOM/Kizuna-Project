@@ -5,11 +5,11 @@
 
 #include <Eigen/Core>
 
-class DataTable {
+class Data {
 public:
-	using Header = Eigen::Matrix<std::string, 1, Eigen::Dynamic>;
-	using Index  = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-	using Data   = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+	using Header  = Eigen::Matrix<std::string, 1, Eigen::Dynamic>;
+	using Index   = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+	using RawData = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
 
 public: // Table Information
 	int Rows() const { return data.rows(); }
@@ -23,7 +23,7 @@ public: // Table Information
 	Header GetHeader() const { return header; }
 	Header GetLabel() const { return label; }
 	Index GetIndex() const { return index; }
-	Data GetData() const { return data; }
+	RawData GetData() const { return data; }
 
 public: // Data Information
 	void Info(int count = -1);
@@ -39,13 +39,11 @@ public: // Table Operations
 	void LoadCSV(std::string filepath);
 	void DropData() { data.setZero(0, 0); }
 
-	DataTable() {}
-
 private:
 	Header header;
 	Header label;
 	Index index;
-	Data data;
+	RawData data;
 };
 
 #endif /* DATA */

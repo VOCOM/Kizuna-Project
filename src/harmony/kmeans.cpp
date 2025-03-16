@@ -51,9 +51,9 @@ void KMeans::Train(int maxThreads) {
 	lock = true;
 
 	int ret;
-	const int maxEntries      = data.Rows();
-	const int dimensions      = data.Cols();
-	const DataTable::Data pts = data.GetData().transpose();
+	const int maxEntries    = data.Rows();
+	const int dimensions    = data.Cols();
+	const Data::RawData pts = data.GetData().transpose();
 	std::vector<int> clusterIndexes(maxEntries);
 
 	Matrix<double, Dynamic, Dynamic> centroids(k, dimensions);

@@ -4,14 +4,12 @@
 #include <queue>
 #include <thread>
 
-#include <errors/errors.hpp>
+#include <errors/error_emitter.hpp>
 
 class ErrorManager {
 public:
 	void Start();
 	void Stop();
-
-	static void Queue(const Error& e);
 
 private:
 	void Loop();
@@ -19,7 +17,13 @@ private:
 private:
 	bool running;
 	std::thread handler;
-	static std::queue<Error> errorQueue;
+
+	std::atomic_bool queueLock;
+	std::queue<Error> errorQueue;
+
+	static std::shared_ptr<ErrorManager> instance;
+
+	friend void Emitter::AddToQueue(const Error& error);
 };
 
 #endif /* ERROR_HANDLER */

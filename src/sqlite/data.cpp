@@ -8,13 +8,13 @@
 
 using namespace Eigen;
 
-void DataTable::InsertFeature(const std::string featureName) {
+void Data::InsertFeature(const std::string featureName) {
 	int newCols = Cols() + 1;
 	header.conservativeResize(NoChange, newCols);
 	data.conservativeResize(NoChange, newCols);
 	header(newCols - 1) = featureName;
 }
-void DataTable::InsertEntry(std::vector<double>& values) {
+void Data::InsertEntry(std::vector<double>& values) {
 	int count   = values.size();
 	int newRows = Rows() + 1;
 	index.conservativeResize(newRows + 1, NoChange);
@@ -28,7 +28,7 @@ void DataTable::InsertEntry(std::vector<double>& values) {
 	index(newRows) = newRows;
 }
 
-void DataTable::LoadCSV(std::string filepath) {
+void Data::LoadCSV(std::string filepath) {
 	std::ifstream fs(filepath);
 	if (!fs.is_open()) {
 		std::cout << "Failed to read file: " << filepath << "\n";
@@ -69,7 +69,7 @@ void DataTable::LoadCSV(std::string filepath) {
 	}
 }
 
-void DataTable::Info(int count) {
+void Data::Info(int count) {
 	int rows = Rows(), cols = Cols();
 	std::vector<int> colWidths(cols + 1);
 

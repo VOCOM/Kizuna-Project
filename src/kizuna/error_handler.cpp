@@ -4,7 +4,7 @@
 
 #include <module.hpp>
 
-std::queue<Error> ErrorManager::errorQueue;
+std::shared_ptr<ErrorManager> ErrorManager::instance;
 
 void ErrorManager::Start() {
 	running = true;
@@ -15,17 +15,15 @@ void ErrorManager::Stop() {
 	if (handler.joinable()) handler.join();
 }
 
-void ErrorManager::Queue(const Error& e) {
-	errorQueue.push(e);
-}
-
 void ErrorManager::Loop() {
 	while (running) {
 		if (errorQueue.empty()) {
+			queueLock = false;
 			std::this_thread::yield();
 			continue;
 		}
 
+		queueLock  = true;
 		Error& err = errorQueue.front();
 		if (HardFault* hf = dynamic_cast<HardFault*>(&err); hf != nullptr) {
 			std::cout << hf->source << " faulted\n"

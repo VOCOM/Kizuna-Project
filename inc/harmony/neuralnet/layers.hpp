@@ -9,7 +9,7 @@
 #define CL_HPP_TARGET_OPENCL_VERSION 300
 #include <cl/opencl.hpp>
 
-#include <data.hpp>
+#include <database/data.hpp>
 
 class Layer {
 public:
@@ -46,8 +46,8 @@ public:
 		return input;
 	}
 
-	ClassificationLayer(DataTable& data) {
-		DataTable::Header labels = data.GetLabel();
+	ClassificationLayer(Data& data) {
+		Data::Header labels = data.GetLabel();
 		std::unordered_map<std::string, int> map;
 		for (auto& label : labels) map[label]++;
 		for (auto& kv : map) depth++;

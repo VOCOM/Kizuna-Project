@@ -1,28 +1,21 @@
 #ifndef ERROR_EMITTER
 #define ERROR_EMITTER
 
+#include <memory>
 #include <string>
 
-#include <errors/error_handler.hpp>
-#include <kizuna.hpp>
+#include <errors.hpp>
 
+class ErrorManager;
 class Emitter {
 public:
-	void Raise(std::string errorMessage) {
-		Raise(errorMessage.c_str());
-	}
-	void Raise(const char* errorMessage) {
-		ErrorManager::Queue(SoftFault(name, errorMessage));
-	}
-
-	void Assert(std::string errorMessage) {
-		Assert(errorMessage.c_str());
-	}
-	void Assert(const char* errorMessage) {
-		ErrorManager::Queue(HardFault(name, errorMessage));
-	}
+	void Raise(std::string errorMessage);
+	void Assert(std::string errorMessage);
 
 	Emitter(const char* name) : name(name) {}
+
+public:
+	void AddToQueue(const Error& error);
 
 private:
 	const char* name;

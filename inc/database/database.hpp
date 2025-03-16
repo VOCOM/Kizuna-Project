@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <database/data.hpp>
+#include <database/database_accessor.hpp>
 #include <module.hpp>
 
 class Database : public Module {
@@ -18,8 +20,6 @@ public:
 public:
 	virtual void Open(std::string database) = 0;
 	virtual void Close()                    = 0;
-
-	virtual void Query(std::string query) = 0;
 
 	// Create
 	virtual void AddTable(std::string name, std::string pKey, Type pType)  = 0;
@@ -36,6 +36,8 @@ public:
 	virtual void DropColumn(std::string name, std::string cKey) = 0;
 	// virtual void DropRow(std::string name)                      = 0;
 
+	std::shared_ptr<Database> GetSharedPtr();
+
 	virtual ~Database() {}
 
 protected:
@@ -43,6 +45,13 @@ protected:
 			{INT, "INT"},
 			{DOUBLE, "DOUBLE"},
 			{TEXT, "TEXT"}};
+
+private:
+	virtual void Query(std::string query) = 0;
+
+	static std::shared_ptr<Database> instance;
+
+	friend Data DatabaseAccessor::Query(std::string query);
 };
 
 #endif /* DATABASE */

@@ -1,14 +1,14 @@
 #ifndef UNSUPERVISED
 #define UNSUPERVISED
 
-#include <data.hpp>
+#include <database/data.hpp>
 #include <model.hpp>
 #include <results.hpp>
 
 class KMeans : public Model {
 public:
 	virtual std::string Name() { return "Kmeans"; }
-	virtual void Load(DataTable& newData) { data = DataTable(newData); }
+	virtual void Load(Data& newData) { data = Data(newData); }
 	virtual void Info(int count = -1);
 
 	virtual void Train(int maxThreads);
@@ -19,7 +19,7 @@ public:
 public:
 	int k;
 	std::atomic_bool lock;
-	DataTable data;
+	Data data;
 	Clusters clusters;
 };
 

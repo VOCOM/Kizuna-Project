@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-#include <utils.hpp>
+#include <utility/utils.hpp>
 
 // Submodule Interface
 void SQLiteDB::Info() {
@@ -96,7 +96,10 @@ void SQLiteDB::Close() {
 }
 
 void SQLiteDB::Query(std::string query) {
-	Execute(query);
+	char* errMsg = nullptr;
+	if (sqlite3_exec(db, query.c_str(), 0, 0, &errMsg) == SQLITE_OK) return;
+	sqlite3_free(errMsg);
+	Raise("Error executing SQL Statement");
 }
 
 // Create
@@ -104,13 +107,13 @@ void SQLiteDB::AddTable(std::string name, std::string pKey, Type pType) {
 	std::stringstream ss;
 	ss << "CREATE TABLE " << name
 		 << "(" << pKey << " " << Types.at(pType) << " PRIMARY KEY NOT NULL);";
-	Execute(ss.str());
+	Query(ss.str());
 }
 void SQLiteDB::AddColumn(std::string name, std::string cKey, Type cType) {
 	std::stringstream ss;
 	ss << "ALTER TABLE " << name << "\n";
 	ss << "ADD " << cKey << " " << Types.at(cType);
-	Execute(ss.str());
+	Query(ss.str());
 }
 void SQLiteDB::AddRow(std::string name, std::vector<double> values) {
 	std::stringstream ss;
@@ -120,7 +123,7 @@ void SQLiteDB::AddRow(std::string name, std::vector<double> values) {
 		if (i < values.size() - 1) ss << ',';
 	}
 	ss << ");";
-	Execute(ss.str());
+	Query(ss.str());
 }
 
 // Read
@@ -130,28 +133,21 @@ void SQLiteDB::UpdateColumn(std::string name, std::string cKey, std::string cKey
 	std::stringstream ss;
 	ss << "ALTER TABLE " << name << "\n"
 		 << "RENAME COLUMN " << cKey << " to " << cKeyNew;
-	Execute(ss.str());
+	Query(ss.str());
 }
 
 // Drop
 void SQLiteDB::DropTable(std::string name) {
 	std::stringstream ss;
 	ss << "DROP TABLE " << name << ";";
-	Execute(ss.str());
+	Query(ss.str());
 }
 void SQLiteDB::DropColumn(std::string name, std::string cKey) {
 	std::stringstream ss;
 	ss << "ALTER TABLE " << name << "\n"
 		 << "DROP COLUMN " << cKey;
-	Execute(ss.str());
+	Query(ss.str());
 }
 
 SQLiteDB::SQLiteDB() : Emitter("SQLiteDB"), db(0) {}
 SQLiteDB::~SQLiteDB() { Close(); }
-
-void SQLiteDB::Execute(std::string sql_stmt) {
-	char* errMsg = nullptr;
-	if (sqlite3_exec(db, sql_stmt.c_str(), 0, 0, &errMsg) == SQLITE_OK) return;
-	sqlite3_free(errMsg);
-	Raise("Error executing SQL Statement");
-}

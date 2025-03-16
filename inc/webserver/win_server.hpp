@@ -7,12 +7,11 @@
 #include <string>
 #include <thread>
 
-#include <kizuna.hpp>
-#include <utils.hpp>
+#include <kizuna/kizuna.hpp>
 
 class WebServer : public Module {
 public:
-	// Submodule Interface
+	// Module Interface
 	virtual std::string Name() { return "Webserver"; }
 	virtual std::string Status() { return ToString(status); }
 	virtual void Info();
@@ -21,7 +20,7 @@ public:
 	virtual void Restart();
 	virtual void LoadConfiguration();
 
-	// Kernel Interface
+	// Shell Interface
 	virtual void Access();
 
 	WebServer();

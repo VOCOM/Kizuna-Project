@@ -9,7 +9,7 @@
 class NeuralNet : public Model {
 public:
 	virtual std::string Name() { return "NeuralNet"; }
-	virtual void Load(DataTable& newData) { data = DataTable(newData); }
+	virtual void Load(Data& newData) { data = Data(newData); }
 	virtual void Info(int count = -1);
 
 	virtual void Train(int maxThreads);
@@ -28,7 +28,7 @@ private:
 private:
 	std::atomic_bool lock;
 	std::vector<std::unique_ptr<Layer>> layers;
-	DataTable data;
+	Data data;
 };
 
 #endif /* NEURALNET */

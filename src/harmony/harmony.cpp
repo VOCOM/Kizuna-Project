@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-#include <kizuna/core.hpp>
+#include <kizuna/configuration.hpp>
 #include <neuralnet/neuralnet.hpp>
 #include <unsupervised.hpp>
 #include <utility/utils.hpp>
@@ -50,7 +50,7 @@ void Harmony::Start() {
 	if (status == Online) return;
 	status     = Online;
 	mainThread = thread(&Harmony::Loop, this);
-	cout << "Harmony online\n";
+	cout << "Harmony Online\n";
 }
 void Harmony::Stop() {
 	if (status == Offline) return;
@@ -146,7 +146,9 @@ void Harmony::Access() {
 }
 
 // Constructors
-Harmony::Harmony() : ErrorEmitter("Harmony") {
+Harmony::Harmony() : Emitter("Harmony") {
+	// modules.push_back(std::make_shared<Harmony>(*this));
+
 	// Load OpenCL Supported Hardware
 	if (LoadPlatform() == false) {
 		Raise("Error registering computing platform.");
@@ -202,27 +204,23 @@ Harmony::~Harmony() {
 
 // Private Methods
 void Harmony::Loop() {
-	try {
-		while (status != Offline) {
-			if (runQueue.empty()) {
-				lock = false;
-				this_thread::yield();
-				continue;
-			}
-
-			auto model = runQueue.front();
-			runQueue.pop();
-
-			lock = true;
-			model->Train(maxCpuThreads);
-			completedQueue.push_back(model);
+	while (status != Offline) {
+		if (runQueue.empty()) {
+			lock = false;
+			this_thread::yield();
+			continue;
 		}
-		cout << "Harmony terminating...\n";
-	} catch (Error& e) {
-		status = Faulted;
-		Kizuna::ErrorQueue.push(e);
+
+		auto model = runQueue.front();
+		runQueue.pop();
+
+		lock = true;
+		model->Train(maxCpuThreads);
+		completedQueue.push_back(model);
 	}
+	cout << "Harmony terminating...\n";
 }
+
 cl::Buffer& Harmony::Buffer(int idx) {
 	if (idx > MAX_BUFFER_COUNT) throw new exception();
 	hardwareQueue.enqueueFillBuffer(buffers[idx], 0, 0, sizeof(double) * MAX_BUFFER_SIZE);

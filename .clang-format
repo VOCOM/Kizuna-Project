@@ -7,10 +7,10 @@ UseTab: AlignWithSpaces
 
 DerivePointerAlignment: False
 PointerAlignment: Left
-
+InsertNewlineAtEOF: true
 ArrayInitializerAlignmentStyle: Right
 AllowShortFunctionsOnASingleLine: All
-AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortBlocksOnASingleLine: Always
 AllowShortLoopsOnASingleLine: true
 AlignConsecutiveDeclarations: false
@@ -19,4 +19,6 @@ AlignConsecutiveAssignments:
   Enabled: true
   AcrossEmptyLines: false
   AcrossComments: false
+AllowShortCaseExpressionOnASingleLine: true 
+ 
 ...

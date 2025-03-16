@@ -6,15 +6,8 @@
 #include <sstream>
 
 #include <configuration.hpp>
-
-std::vector<std::shared_ptr<Module>> Kizuna::ModuleList;
-std::queue<Error> Kizuna::ErrorQueue;
-
-void Kizuna::LoadModule(std::shared_ptr<Module> module) {
-	module->LoadConfiguration();
-	module->Start();
-	ModuleList.push_back(module);
-}
+#include <errors/errors.hpp>
+#include <utils.hpp>
 
 void Kizuna::Access() {
 	std::string buffer, command;
@@ -46,22 +39,23 @@ void Kizuna::Access() {
 void Kizuna::Initialize() {
 	Clear();
 	Configuration::LoadConfig();
-
-	errorHandlerStatus = Online;
-	errorHandler       = std::thread(&Kizuna::ErrorHandler, this);
+	errorHandler.Start();
 }
 void Kizuna::Shutdown() {
-	for (auto& module : ModuleList) {
-		module->Stop();
-		module->~Module();
-	}
-
-	errorHandlerStatus = Offline;
-	errorHandler.join();
+	Module::Shutdown();
+	errorHandler.Stop();
+}
+void Kizuna::LoadModule(std::shared_ptr<Module> const& module) {
+	module->LoadConfiguration();
+	module->Start();
+	Module::GetModules().push_back(module);
 }
 
-void Kizuna::HelpCommand(std::queue<std::string>& params) {
+Kizuna::~Kizuna() {
+	Shutdown();
 }
+
+void Kizuna::HelpCommand(std::queue<std::string>& params) {}
 void Kizuna::ConfigCommand(std::queue<std::string>& params) {
 	std::string filter;
 	if (params.size() > 0) filter = params.front();
@@ -69,37 +63,18 @@ void Kizuna::ConfigCommand(std::queue<std::string>& params) {
 }
 void Kizuna::ModuleCommand(std::queue<std::string>& params, void (Module::*function)()) {
 	std::string param;
-	while (params.size() > 0) {
-		param = params.front();
-		std::transform(param.begin(), param.end(), param.begin(), std::tolower);
-		for (auto& module : Kizuna::ModuleList) {
-			std::string name(module->Name());
-			std::transform(name.begin(), name.end(), name.begin(), std::tolower);
-			if (param != name && param != "all") continue;
+
+	if (params.empty()) return;
+	param = params.front();
+	params.pop();
+	std::transform(param.begin(), param.end(), param.begin(), std::tolower);
+
+	if (param == "all") {
+		for (auto module : Module::GetModules())
 			std::bind(function, module)();
-		}
-		params.pop();
-		if (param == "all")
-			params = std::queue<std::string>();
+		return;
 	}
-}
 
-void Kizuna::ErrorHandler() {
-	while (errorHandlerStatus != Offline) {
-		if (ErrorQueue.empty()) {
-			std::this_thread::yield();
-			continue;
-		}
-
-		auto err = ErrorQueue.front();
-		for (auto& module : Kizuna::ModuleList) {
-			std::string name(module->Name());
-			if (err.source != module->Name()) continue;
-			std::cout << "\n"
-								<< err.source << " faulted\n"
-								<< err.error << "\n"
-								<< "Status " << module->Status() << "\n";
-		}
-		ErrorQueue.pop();
-	}
+	auto module = Module::GetModule(param);
+	std::bind(function, module)();
 }

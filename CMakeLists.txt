@@ -17,9 +17,11 @@ endif()
 # Define Target
 add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
 
+
 # Configure Modules
 add_subdirectory(src/utility)
 add_subdirectory(src/kizuna)
+add_subdirectory(src/sqlite)
 add_subdirectory(src/webserver)
 add_subdirectory(src/harmony)
 

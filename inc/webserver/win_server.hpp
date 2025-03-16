@@ -7,8 +7,8 @@
 #include <string>
 #include <thread>
 
-#include <kizuna/kizuna.hpp>
-#include <utility/utils.hpp>
+#include <kizuna.hpp>
+#include <utils.hpp>
 
 class WebServer : public Module {
 public:

@@ -8,14 +8,14 @@
 #define CL_HPP_TARGET_OPENCL_VERSION 300
 #include <CL/opencl.hpp>
 
-#include <kizuna/error_emitter.hpp>
+#include <errors/error_emitter.hpp>
 #include <kizuna/module.hpp>
 #include <utility/utils.hpp>
 
 #include <data.hpp>
 #include <model.hpp>
 
-class Harmony : public Module, public ErrorEmitter {
+class Harmony : public Module, public Emitter {
 public:
 	// Submodule Interface
 	virtual std::string Name() { return "Harmony"; }

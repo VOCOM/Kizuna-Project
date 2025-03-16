@@ -13,7 +13,9 @@ endif()
 file(GLOB RSP_FILES responses/*.cpp)
 add_library(${PROJECT_NAME} ${SRC_FILES} ${RSP_FILES})
 target_include_directories(${PROJECT_NAME} 
-  PUBLIC ${CMAKE_SOURCE_DIR}/inc
+  PUBLIC ${CMAKE_SOURCE_DIR}/inc/utility
+  PUBLIC ${CMAKE_SOURCE_DIR}/inc/kizuna
+  PUBLIC ${CMAKE_SOURCE_DIR}/inc/kizuna/errors
   PUBLIC ${CMAKE_SOURCE_DIR}/inc/webserver
 )
 

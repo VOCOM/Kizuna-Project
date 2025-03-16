@@ -2,13 +2,12 @@
 
 #include <WS2tcpip.h>
 
+#include <configuration.hpp>
 #include <fstream>
 #include <iostream>
-#include <sstream>
-
-#include <kizuna/core.hpp>
 #include <responses.hpp>
-#include <utility/utils.hpp>
+#include <sstream>
+#include <utils.hpp>
 
 // Submodule Interface
 void WebServer::Info() {
@@ -101,6 +100,8 @@ void WebServer::Access() {
 
 // Constructors
 WebServer::WebServer() {
+	// modules.push_back(std::make_shared<WebServer>(*this));
+
 	// Initialize Winsock
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData)) {
 		std::cout << "Error initializing WS2_32.dll.\n";
@@ -117,32 +118,27 @@ WebServer::~WebServer() {}
 
 // Private Methods
 void WebServer::Loop() {
-	try {
-		while (status != Offline) {
-			AcceptConnection();
+	while (status != Offline) {
+		AcceptConnection();
 
-			// Read data
-			requestBytes = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+		// Read data
+		requestBytes = recv(clientSocket, buffer, BUFFER_SIZE, 0);
 
-			// Error Case
-			if (requestBytes < 0) {
-				status = Offline;
-				closesocket(clientSocket);
-				WSACleanup();
-				continue;
-			}
-
-			// Closed Connection
-			if (requestBytes == 0) continue;
-
-			ProcessRequest();
-			ProcessResponse();
+		// Error Case
+		if (requestBytes < 0) {
+			status = Offline;
+			closesocket(clientSocket);
+			WSACleanup();
+			continue;
 		}
-		if (shutdown(clientSocket, SD_SEND) != SOCKET_ERROR) return;
-	} catch (Error e) {
-		status = Offline;
-		Kizuna::ErrorQueue.push(e);
+
+		// Closed Connection
+		if (requestBytes == 0) continue;
+
+		ProcessRequest();
+		ProcessResponse();
 	}
+	if (shutdown(clientSocket, SD_SEND) != SOCKET_ERROR) return;
 }
 void WebServer::AcceptConnection() {
 	clientSocket = accept(listenSocket, NULL, NULL);

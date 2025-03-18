@@ -1,78 +1,8 @@
 #ifndef LAYERS
 #define LAYERS
 
-#include <iostream>
-#include <string>
-#include <unordered_map>
-#include <vector>
-
-#define CL_HPP_TARGET_OPENCL_VERSION 300
-#include <cl/opencl.hpp>
-
-#include <database/data.hpp>
-
-class Layer {
-public:
-	virtual std::string Name() const            = 0;
-	virtual int Depth() const                   = 0;
-	virtual std::vector<double> Weights() const = 0;
-
-	virtual cl::Buffer Compute(cl::Buffer input, std::vector<double> inputWeights, int count) = 0;
-
-	virtual ~Layer() {}
-};
-
-class InputLayer : public Layer {
-public:
-	virtual std::string Name() const { return "Input Layer"; }
-	virtual int Depth() const { return depth; }
-	virtual std::vector<double> Weights() const { return std::vector<double>(depth, 1); }
-
-	virtual cl::Buffer Compute(cl::Buffer input, std::vector<double> inputWeights, int count) {
-		depth = count;
-		return input;
-	}
-
-private:
-	int depth;
-};
-class ClassificationLayer : public Layer {
-public:
-	virtual std::string Name() const { return "Classification Layer"; }
-	virtual int Depth() const { return depth; }
-	virtual std::vector<double> Weights() const { return std::vector<double>(depth); }
-
-	virtual cl::Buffer Compute(cl::Buffer input, std::vector<double> inputWeights, int count) {
-		return input;
-	}
-
-	ClassificationLayer(Data& data) {
-		Data::Header labels = data.GetLabel();
-		std::unordered_map<std::string, int> map;
-		for (auto& label : labels) map[label]++;
-		for (auto& kv : map) depth++;
-		prediction.resize(depth);
-	}
-
-private:
-	int depth = 0;
-	std::vector<int> truth;
-	std::vector<int> prediction;
-};
-
-class ReLuLayer : public Layer {
-public:
-	virtual std::string Name() const { return "ReLu Layer"; }
-	virtual int Depth() const { return bias.size(); }
-	virtual std::vector<double> Weights() const { return outputWeights; }
-
-	virtual cl::Buffer Compute(cl::Buffer input, std::vector<double> inputWeights, int count);
-
-	ReLuLayer(int depth) : bias(depth), outputWeights(depth) {}
-
-private:
-	std::vector<double> bias;
-	std::vector<double> outputWeights;
-};
+#include <hidden_layers.hpp>
+#include <input_layers.hpp>
+#include <output_layers.hpp>
 
 #endif /* LAYERS */

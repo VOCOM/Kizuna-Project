@@ -51,3 +51,7 @@ int Digits(int number) {
 	}
 	return digits;
 }
+
+bool Contains(std::string haystack, const char* needle) {
+	return haystack.find(needle) != std::string::npos;
+}

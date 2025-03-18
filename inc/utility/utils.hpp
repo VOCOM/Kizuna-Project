@@ -10,5 +10,6 @@ void ReplaceToken(std::string& input, const char delim, const char c = ' ');
 std::vector<std::string> Split(std::string& input, const char delim = ',');
 std::queue<std::string> Enqueue(std::string& buffer);
 int Digits(int number);
+bool Contains(std::string haystack, const char* needle);
 
 #endif /* UTILS */

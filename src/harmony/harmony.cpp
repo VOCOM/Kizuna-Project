@@ -14,18 +14,6 @@
 
 using namespace std;
 
-int Harmony::MAX_BUFFER_COUNT;
-int Harmony::MAX_BUFFER_SIZE;
-
-cl::Device Harmony::device;
-cl::Context Harmony::context;
-vector<cl::Buffer> Harmony::buffers;
-cl::CommandQueue Harmony::hardwareQueue;
-cl::Kernel Harmony::euclid;
-cl::Kernel Harmony::centroid;
-cl::Kernel Harmony::perceptron;
-cl::Kernel Harmony::relu;
-
 // Submodule Interface
 void Harmony::Info() {
 	cout << "Submodule " << Name() << "\n";
@@ -70,23 +58,13 @@ void Harmony::LoadConfiguration() {
 	param         = config["max_cpu_threads"];
 	maxCpuThreads = param == "auto" ? thread::hardware_concurrency() : stoi(param);
 
-	if (config.find("buffer_size") == config.end())
-		config["buffer_size"] = "0xFFFFF";
-	param           = config["buffer_size"];
-	int base        = param.find('x') == string::npos ? 10 : 16;
-	MAX_BUFFER_SIZE = stoi(param, nullptr, base);
-
-	if (config.find("buffer_count") == config.end())
-		config["buffer_count"] = "5";
-	MAX_BUFFER_COUNT = stoi(config["buffer_count"]);
+	if (config.find("buffer_count") == config.end()) config["buffer_count"] = "5";
+	if (config.find("buffer_size") == config.end()) config["buffer_size"] = "0xFFFFF";
+	int base = config["buffer_size"].find('x') == string::npos ? 10 : 16;
+	Kernels::LoadBuffers(stoi(config["buffer_count"]), stoi(param, nullptr, base));
 
 	// Initialize worker pool
 	workerThreads.resize(maxCpuThreads);
-
-	// Initialize buffers
-	while (buffers.size()) buffers.pop_back();
-	for (int i = 0; i < MAX_BUFFER_COUNT; i++)
-		buffers.push_back(cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(double) * MAX_BUFFER_SIZE));
 }
 
 // Kernel Interface
@@ -145,56 +123,17 @@ void Harmony::Access() {
 	}
 }
 
+// Neural Net Operations
+void Harmony::NNOperations() {}
+
 // Constructors
 Harmony::Harmony() : Module("Harmony") {
-	// Load OpenCL Supported Hardware
-	if (LoadPlatform() == false) {
-		Raise("Error registering computing platform.");
-		return;
-	}
-
-	// Load GPU Hardware
-	if (LoadDevice(CL_DEVICE_TYPE_GPU) == false) {
-		Raise("Error registering computing device.");
-		return;
-	}
-
-	// Generate Context
-	context = cl::Context(device);
-
-	// Initialize Queue
-	hardwareQueue = cl::CommandQueue(context, device);
-
-	// Compile Core Program
-	cl::Program core_program;
-	if (BuildProgram(context, device, ".\\harmony\\math.cl", core_program) == false) {
-		Raise("Error Building Program.");
-		return;
-	}
+	if (Kernels::Initialize(CL_DEVICE_TYPE_GPU))
+		Raise("Error Initializing OpenCL.");
 
 	// Load Kernel Functions
-	int ret;
-	char buffer[100];
-	euclid = cl::Kernel(core_program, "euclideanDistance", &ret);
-	if (ret != CL_SUCCESS) {
-		std::snprintf(buffer, 100, "Failed to load Euclidean Distance kernel. Code %d", ret);
-		Raise(buffer);
-	}
-	centroid = cl::Kernel(core_program, "centroid", &ret);
-	if (ret != CL_SUCCESS) {
-		std::snprintf(buffer, 100, "Failed to load Centroid kernel. Code %d", ret);
-		Raise(buffer);
-	}
-	perceptron = cl::Kernel(core_program, "perceptron", &ret);
-	if (ret != CL_SUCCESS) {
-		std::snprintf(buffer, 100, "Failed to load Perceptron kernel. Code %d", ret);
-		Raise(buffer);
-	}
-	relu = cl::Kernel(core_program, "relu", &ret);
-	if (ret != CL_SUCCESS) {
-		std::snprintf(buffer, 100, "Failed to load ReLu kernel. Code %d", ret);
-		Raise(buffer);
-	}
+	if (Kernels::LoadKernels(".\\harmony\\math.cl"))
+		Raise("Error Initializing Kernel Functions.");
 }
 Harmony::~Harmony() {
 	Stop();
@@ -217,48 +156,4 @@ void Harmony::Loop() {
 		completedQueue.push_back(model);
 	}
 	cout << "Harmony terminating...\n";
-}
-
-cl::Buffer& Harmony::Buffer(int idx) {
-	if (idx > MAX_BUFFER_COUNT) throw new exception();
-	hardwareQueue.enqueueFillBuffer(buffers[idx], 0, 0, sizeof(double) * MAX_BUFFER_SIZE);
-	return buffers[idx];
-}
-
-bool Harmony::LoadPlatform() {
-	vector<cl::Platform> platforms;
-	cl::Platform::get(&platforms);
-	cl::Platform platform;
-
-	for (auto& p : platforms) {
-		string platver = p.getInfo<CL_PLATFORM_VERSION>();
-		if (platver.find("OpenCL 2.") != string::npos ||
-		    platver.find("OpenCL 3.") != string::npos) {
-			// Note: an OpenCL 3.x platform may not support all required features!
-			platform = p;
-		}
-	}
-
-	if (platform() == 0) return false;
-	return cl::Platform::setDefault(platform) == platform;
-}
-bool Harmony::LoadDevice(uint8_t cl_device_type) {
-	vector<cl::Device> devices;
-	cl::Platform::getDefault().getDevices(CL_DEVICE_TYPE_ALL, &devices);
-	if (devices.size() == 0) return false;
-
-	for (auto& d : devices) {
-		if (d.getInfo<CL_DEVICE_TYPE>() != cl_device_type) continue;
-		device = d;
-		return true;
-	}
-	return false;
-}
-bool Harmony::BuildProgram(cl::Context& context, cl::Device& device, string source_path, cl::Program& program) {
-	ifstream fs(source_path);
-	stringstream kernel_code;
-	kernel_code << fs.rdbuf();
-	cl::Program::Sources source{kernel_code.str()};
-	program = cl::Program(context, source);
-	return program.build(device) == CL_SUCCESS;
 }

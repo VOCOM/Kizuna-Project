@@ -2,7 +2,8 @@
 
 #include <iostream>
 
-#include <harmony.hpp>
+#include <kernels.hpp>
+#include <layers.hpp>
 
 void NeuralNet::Info(int count) {
 	std::cout << "Neural Network\n"
@@ -17,7 +18,7 @@ void NeuralNet::Train(int maxThreads) {
 	layers.push_back(std::make_unique<ClassificationLayer>(data));
 
 	int epoch  = 1;
-	auto input = Harmony::Buffer(0);
+	auto input = Kernels::Buffer(0);
 	for (int i = 0; i < epoch; i++) {
 		input = FeedForward(input);
 
@@ -26,7 +27,7 @@ void NeuralNet::Train(int maxThreads) {
 	}
 
 	std::vector<double> o(2);
-	auto queue = Harmony::Queue();
+	auto queue = Kernels::Queue();
 	queue.enqueueReadBuffer(input, CL_TRUE, 0, sizeof(double) * 2, o.data());
 	for (auto d : o) std::cout << d << "\n";
 
@@ -45,7 +46,7 @@ cl::Buffer NeuralNet::FeedForward(cl::Buffer input) {
 	Data::RawData inputData = data.GetData().transpose();
 
 	int count  = data.Cols();
-	auto queue = Harmony::Queue();
+	auto queue = Kernels::Queue();
 	int ret    = queue.enqueueWriteBuffer(input, CL_TRUE, 0, sizeof(double) * count, inputData.data());
 	if (ret != CL_SUCCESS) std::cout << "Error Filling Input buffer. Code " << ret << "\n";
 

@@ -3,8 +3,8 @@
 
 #include <memory>
 
+#include <abstract_layer.hpp>
 #include <model.hpp>
-#include <neuralnet/layers.hpp>
 
 class NeuralNet : public Model {
 public:

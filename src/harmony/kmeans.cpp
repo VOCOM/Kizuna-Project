@@ -8,7 +8,7 @@
 #include <vector>
 
 // Modules
-#include <harmony.hpp>
+#include <kernels.hpp>
 
 #if DEBUG
 #include <utility/timer.hpp>
@@ -19,7 +19,7 @@ using namespace Eigen;
 std::vector<bool> locks;
 
 void LoadCluster(const int start, const int end, const int N, const int dim, cl::Buffer index, cl::Buffer points, std::shared_ptr<Clusters> clusters) {
-	auto queue = Harmony::Queue();
+	auto queue = Kernels::Queue();
 	for (int i = start, c = 0; i < end; i++) {
 		// Find cluster
 		queue.enqueueReadBuffer(index, CL_TRUE, sizeof(int) * i, sizeof(int), &c);
@@ -64,10 +64,10 @@ void KMeans::Train(int maxThreads) {
 		centroids.row(i) = data.GetRow(i);
 
 	// Get Master Queue
-	auto queue   = Harmony::Queue();
-	auto buffer1 = Harmony::Buffer(0); // Points        [double]
-	auto buffer2 = Harmony::Buffer(1); // Centroids     [double]
-	auto buffer3 = Harmony::Buffer(2); // Cluster Index [int]
+	auto queue   = Kernels::Queue();
+	auto buffer1 = Kernels::Buffer(0); // Points        [double]
+	auto buffer2 = Kernels::Buffer(1); // Centroids     [double]
+	auto buffer3 = Kernels::Buffer(2); // Cluster Index [int]
 
 	// Fill Buffer 1 with points [double]
 	ret = queue.enqueueWriteBuffer(buffer1, CL_TRUE, 0, sizeof(double) * pts.count(), pts.data());
@@ -84,7 +84,7 @@ void KMeans::Train(int maxThreads) {
 	// Compute clusters
 	bool converged = false;
 	while (!converged) {
-		auto buffer4 = Harmony::Buffer(3); // New Centroids [double]
+		auto buffer4 = Kernels::Buffer(3); // New Centroids [double]
 
 		// Fill Buffer 2 with centroids [double]
 		ret = queue.enqueueWriteBuffer(buffer2, CL_TRUE, 0, sizeof(double) * centroids.count(), centroids.data());
@@ -92,7 +92,7 @@ void KMeans::Train(int maxThreads) {
 
 		// Select Euclidean Distance Kernel
 		// (Points, Centroids, Index, Dimensions, K)
-		auto kernel = Harmony::Distance();
+		auto kernel = Kernels::Distance();
 		kernel.setArg(0, buffer1);
 		kernel.setArg(1, buffer2);
 		kernel.setArg(2, buffer3);
@@ -106,7 +106,7 @@ void KMeans::Train(int maxThreads) {
 
 		// Select Centroid Kernel
 		// (Points, Dimensions, Index, New Centroids)
-		kernel = Harmony::Centroid();
+		kernel = Kernels::Centroid();
 		kernel.setArg(0, buffer1);
 		kernel.setArg(1, buffer3);
 		kernel.setArg(2, buffer4);

@@ -8,7 +8,7 @@
 #include <database.hpp>
 #include <error_emitter.hpp>
 
-class SQLiteDB : public Database, public Emitter {
+class SQLiteDB : public Database {
 public: // Module Interface
 	virtual std::string Name() { return "SQLiteDB"; }
 	virtual std::string Status() { return ToString(status); }
@@ -49,7 +49,7 @@ private:
 	sqlite3* db;
 	std::string dbName;
 
-	const char* ext = ".sqlite";
+	const char* ext = ".sqlite3";
 };
 
 #endif /* SQLITE_DATABASE */

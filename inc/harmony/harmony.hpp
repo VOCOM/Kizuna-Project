@@ -15,7 +15,7 @@
 #include <database/database_accessor.hpp>
 #include <model.hpp>
 
-class Harmony : public Module, public Emitter, public DatabaseAccessor {
+class Harmony : public Module, public DatabaseAccessor {
 public:
 	// Module Interface
 	virtual std::string Name() { return "Harmony"; }

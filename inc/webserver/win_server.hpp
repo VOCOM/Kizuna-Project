@@ -7,7 +7,7 @@
 #include <string>
 #include <thread>
 
-#include <kizuna/kizuna.hpp>
+#include <kizuna.hpp>
 
 class WebServer : public Module {
 public:

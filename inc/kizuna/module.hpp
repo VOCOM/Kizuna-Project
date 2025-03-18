@@ -6,9 +6,10 @@
 #include <string>
 #include <vector>
 
+#include <error_emitter.hpp>
 #include <shell.hpp>
 
-class Module : public Shell {
+class Module : public Shell, public Emitter {
 public:
 	enum StatusCode {
 		Offline,
@@ -32,11 +33,14 @@ public:
 	virtual void Restart()           = 0;
 	virtual void LoadConfiguration() = 0;
 
+	void RegisterModule(std::shared_ptr<Module> module);
+
 	static bool IsOnline(std::string moduleName);
-	static std::shared_ptr<Module> GetModule(std::string moduleName);
+	static std::shared_ptr<Module> GetModule(const std::string& moduleType);
 	static std::vector<std::shared_ptr<Module>>& GetModules();
 	static void Shutdown();
 
+	Module(const char* name) : Emitter(name) {}
 	virtual ~Module() {}
 
 protected:

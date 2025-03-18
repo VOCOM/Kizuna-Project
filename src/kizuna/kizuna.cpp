@@ -49,7 +49,7 @@ void Kizuna::Shutdown() {
 void Kizuna::LoadModule(const std::shared_ptr<Module>& module) {
 	module->LoadConfiguration();
 	module->Start();
-	Module::GetModules().push_back(module);
+	module->RegisterModule(module);
 }
 
 Kizuna::~Kizuna() {

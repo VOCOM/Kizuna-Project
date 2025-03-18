@@ -149,5 +149,5 @@ void SQLiteDB::DropColumn(std::string name, std::string cKey) {
 	Query(ss.str());
 }
 
-SQLiteDB::SQLiteDB() : Emitter("SQLiteDB"), db(0) {}
+SQLiteDB::SQLiteDB() : Database("SQLiteDB"), db(0) {}
 SQLiteDB::~SQLiteDB() { Close(); }

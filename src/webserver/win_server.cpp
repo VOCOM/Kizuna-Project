@@ -100,7 +100,7 @@ void WebServer::Access() {
 }
 
 // Constructors
-WebServer::WebServer() {
+WebServer::WebServer() : Module("Webserver") {
 	// Initialize Winsock
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData)) {
 		std::cout << "Error initializing WS2_32.dll.\n";

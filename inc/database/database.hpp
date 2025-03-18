@@ -38,6 +38,7 @@ public:
 
 	std::shared_ptr<Database> GetSharedPtr();
 
+	Database(const char* name) : Module(name) {}
 	virtual ~Database() {}
 
 protected:

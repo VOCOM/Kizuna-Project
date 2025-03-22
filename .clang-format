@@ -8,7 +8,9 @@ UseTab: AlignWithSpaces
 DerivePointerAlignment: False
 PointerAlignment: Left
 InsertNewlineAtEOF: true
-ArrayInitializerAlignmentStyle: Right
+
+AlignArrayOfStructures: Right
+
 AllowShortFunctionsOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortBlocksOnASingleLine: Always
@@ -21,4 +23,3 @@ AlignConsecutiveAssignments:
   AcrossComments: false
 AllowShortCaseExpressionOnASingleLine: true 
  
-...

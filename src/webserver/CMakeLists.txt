@@ -1,5 +1,6 @@
 project(webserver VERSION 1.0)
 
+message(${CMAKE_GENERATOR})
 if(${CMAKE_GENERATOR} MATCHES "Visual Studio")
   file(GLOB SRC_FILES *.cpp)
   if(${CMAKE_VS_PLATFORM_NAME} MATCHES "x64")

@@ -1,11 +1,11 @@
 #include <sqlite_database.hpp>
 
-#include <algorithm>
 #include <iostream>
 #include <queue>
 #include <sstream>
 #include <string>
 
+#include <configuration.hpp>
 #include <utility/utils.hpp>
 
 // Submodule Interface
@@ -28,6 +28,9 @@ void SQLiteDB::Restart() {
 	Start();
 }
 void SQLiteDB::LoadConfiguration() {
+	std::string param;
+	auto& config = Configuration::Config["sqlite"];
+	Open(config["database"]);
 }
 
 // Shell Interface
@@ -46,19 +49,22 @@ void SQLiteDB::Access() {
 
 		// Kernel Commands
 		if (command == "exit") return;
+		if (command == "clear") Clear();
 
-		if (command == "open") {
-			if (params.empty()) continue;
-			Open(params.front());
-		}
-		if (command == "query") Query(buffer.substr(buffer.find(' ') + 1, buffer.size()));
+		if (command == "open")
+			if (!params.empty())
+				Open(params.front());
+
+		if (command == "query")
+			Query(buffer.substr(buffer.find(' ') + 1, buffer.size()));
+
 		if (command == "add") {
 			if (params.size() < 3) continue;
 			command = params.front();
 			params.pop();
-			auto tableName = params.front();
+			std::string tableName = params.front();
 			params.pop();
-			auto keyName = params.front();
+			std::string keyName = params.front();
 
 			if (command == "table") AddTable(tableName, keyName);
 			if (command == "col") AddColumn(tableName, keyName, Database::DOUBLE);
@@ -84,15 +90,16 @@ void SQLiteDB::Open(std::string database) {
 		std::stringstream ss;
 		ss << "Failed to open database" << sqlite3_errmsg(db);
 		Raise(ss.str());
+		return;
 	}
 
 	dbName = database;
 }
 void SQLiteDB::Close() {
-	if (db) {
-		sqlite3_close(db);
-		dbName.clear();
-	}
+	if (!db) return;
+
+	sqlite3_close(db);
+	dbName.clear();
 }
 
 void SQLiteDB::Query(std::string query) {
@@ -149,5 +156,5 @@ void SQLiteDB::DropColumn(std::string name, std::string cKey) {
 	Query(ss.str());
 }
 
-SQLiteDB::SQLiteDB() : Database("SQLiteDB"), db(0) {}
+SQLiteDB::SQLiteDB() : Database("SQLiteDB"), status(), db(0), dbName() {}
 SQLiteDB::~SQLiteDB() { Close(); }

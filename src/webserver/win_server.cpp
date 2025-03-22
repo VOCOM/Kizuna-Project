@@ -2,6 +2,7 @@
 
 #include <WS2tcpip.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -12,7 +13,7 @@
 
 // Submodule Interface
 void WebServer::Info() {
-	std::cout << "Submodule " << Name() << "\n";
+	std::cout << "Module " << Name() << "\n";
 	std::cout << "Address " << nodename << ':' << port << "\n";
 	std::cout << "Status " << Status() << "\n\n";
 }

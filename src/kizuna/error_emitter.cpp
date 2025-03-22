@@ -1,10 +1,7 @@
 #include <error_handler.hpp>
 
-void Emitter::AddToQueue(const Error& error) {
-	while (ErrorManager::instance->queueLock) std::this_thread::yield();
-	ErrorManager::instance->queueLock = true;
-	ErrorManager::instance->errorQueue.push(error);
-	ErrorManager::instance->queueLock = false;
+void Emitter::AddToQueue(const Error error) {
+	ErrorManager::errorQueue.push(error);
 }
 
 void Emitter::Raise(std::string errorMessage) {

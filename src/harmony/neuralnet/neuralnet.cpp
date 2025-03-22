@@ -7,7 +7,8 @@
 
 void NeuralNet::Info(int count) {
 	std::cout << "Neural Network\n"
-						<< "Hidden layers: " << layers.size() << "\n";
+						<< "Hidden layers: " << layers.size() - 1 << "\n";
+
 	for (int i = 0; i < layers.size(); i++)
 		std::cout << "Layer " << i << " Depth " << layers[i]->Depth() << "\n";
 }
@@ -34,8 +35,8 @@ void NeuralNet::Train(int maxThreads) {
 	lock = false;
 }
 
-void NeuralNet::AddLayer(int depth) {
-	layers.push_back(std::make_unique<ReLuLayer>(depth));
+void NeuralNet::AddLayer(std::unique_ptr<Layer> layer) {
+	layers.push_back(std::move(layer));
 }
 
 NeuralNet::NeuralNet() {

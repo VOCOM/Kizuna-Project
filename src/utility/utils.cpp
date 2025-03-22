@@ -52,6 +52,21 @@ int Digits(int number) {
 	return digits;
 }
 
+int ToInt(std::string input) {
+	try {
+		return std::stoi(input);
+	} catch (...) {
+		std::cout << "Error converting " << input << " to integer.\n";
+	}
+}
+std::string ToLower(std::string input) {
+	std::transform(input.begin(), input.end(), input.begin(), std::tolower);
+	return input;
+}
+
 bool Contains(std::string haystack, const char* needle) {
 	return haystack.find(needle) != std::string::npos;
+}
+bool Contains(std::string haystack, std::string needle) {
+	return Contains(haystack, needle.c_str());
 }

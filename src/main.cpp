@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <harmony.hpp>
 #include <kizuna.hpp>
 #include <sqlite_database.hpp>

@@ -17,7 +17,7 @@ public:
 
 	virtual Results Result() { return Results(); }
 
-	void AddLayer(int depth);
+	void AddLayer(std::unique_ptr<Layer> layer);
 
 	NeuralNet();
 

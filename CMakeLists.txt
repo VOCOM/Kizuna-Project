@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Build Variant
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     add_compile_definitions(DEBUG)
 endif()
 
@@ -16,7 +16,6 @@ endif()
 
 # Define Target
 add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
-
 
 # Configure Modules
 add_subdirectory(src/utility)
@@ -37,4 +36,4 @@ else()
 endif()
 
 # Configuration file
-file(COPY config.ini DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+file(COPY config.ini DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${CMAKE_CONFIGURATION_TYPES})

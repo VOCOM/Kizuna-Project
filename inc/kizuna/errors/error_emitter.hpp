@@ -15,7 +15,7 @@ public:
 	Emitter(const char* name) : name(name) {}
 
 public:
-	void AddToQueue(const Error& error);
+	void AddToQueue(const Error error);
 
 private:
 	const char* name;

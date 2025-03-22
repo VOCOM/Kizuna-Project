@@ -30,11 +30,13 @@
 *.out
 *.app
 
-# VSCode
-/.vscode
+# IDEs
+.vs
+.vscode
 
 # Directories
 /build
+
 # Configurations
 *.ini
 

@@ -1,7 +1,5 @@
 #include <module.hpp>
 
-#include <typeindex>
-
 std::vector<std::shared_ptr<Module>> Module::modules;
 
 void Module::RegisterModule(std::shared_ptr<Module> module) {

@@ -6,7 +6,6 @@
 #include <sstream>
 
 #include <configuration.hpp>
-#include <database/database_accessor.hpp>
 #include <errors/error_emitter.hpp>
 #include <utility/utils.hpp>
 
@@ -40,11 +39,9 @@ void Kizuna::Access() {
 void Kizuna::Initialize() {
 	Clear();
 	Configuration::LoadConfig();
-	errorHandler.Start();
 }
 void Kizuna::Shutdown() {
 	Module::Shutdown();
-	errorHandler.Stop();
 }
 void Kizuna::LoadModule(const std::shared_ptr<Module>& module) {
 	module->LoadConfiguration();
@@ -70,12 +67,10 @@ void Kizuna::ModuleCommand(std::queue<std::string>& params, void (Module::*funct
 	params.pop();
 	std::transform(param.begin(), param.end(), param.begin(), std::tolower);
 
-	if (param == "all") {
-		for (auto module : Module::GetModules())
-			std::bind(function, module)();
-		return;
+	for (auto& module : Module::GetModules()) {
+		std::string name = module->Name();
+		std::transform(name.begin(), name.end(), name.begin(), std::tolower);
+		if (param != "all" && param != name) continue;
+		std::bind(function, module)();
 	}
-
-	auto module = Module::GetModule(param);
-	std::bind(function, module)();
 }

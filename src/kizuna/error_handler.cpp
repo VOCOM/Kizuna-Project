@@ -1,30 +1,27 @@
 #include <error_handler.hpp>
 
+#include <fstream>
 #include <iostream>
 
 #include <module.hpp>
 
-std::shared_ptr<ErrorManager> ErrorManager::instance;
+ErrorQueue ErrorManager::errorQueue;
 
-void ErrorManager::Start() {
+ErrorManager::ErrorManager() : running() {
 	running = true;
 	handler = std::thread(&ErrorManager::Loop, this);
 }
-void ErrorManager::Stop() {
+ErrorManager::~ErrorManager() {
 	running = false;
 	if (handler.joinable()) handler.join();
 }
 
-void ErrorManager::Loop() {
+void ErrorManager::Loop() const {
+	std::ofstream fs("log.txt");
 	while (running) {
-		if (errorQueue.empty()) {
-			queueLock = false;
-			std::this_thread::yield();
-			continue;
-		}
+		if (errorQueue.empty()) continue;
 
-		queueLock  = true;
-		Error& err = errorQueue.front();
+		Error& err = errorQueue.pop();
 		if (HardFault* hf = dynamic_cast<HardFault*>(&err); hf != nullptr) {
 			std::cout << hf->source << " faulted\n"
 								<< hf->error << "\n"
@@ -32,6 +29,7 @@ void ErrorManager::Loop() {
 			Module::GetModule(err.source)->Restart();
 		}
 
+		fs << err.source << ": " << err.error << std::endl;
 		errorQueue.pop();
 	}
 }

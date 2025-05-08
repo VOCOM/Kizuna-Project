@@ -6,13 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Build Variant
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    add_compile_definitions(DEBUG)
+  add_compile_definitions(DEBUG)
 endif()
 
-# Default Hardware Acceleration Variant
-if(NOT DEFINED PLATFORM_TYPE)
-    set(PLATFORM_TYPE "CL")
+if(PLATFORM_TYPE STREQUAL "CUDA")
+  add_compile_definitions(CUDA)
+  find_package(CUDAToolkit REQUIRED)
 endif()
+
 
 # Define Target
 add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
@@ -20,20 +21,18 @@ add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
 # Configure Modules
 add_subdirectory(src/utility)
 add_subdirectory(src/kizuna)
-add_subdirectory(src/sqlite)
+
 add_subdirectory(src/webserver)
+add_subdirectory(src/sqlite)
 add_subdirectory(src/harmony)
 
 if(BUILD_TEST STREQUAL "ON")
-    add_subdirectory(src/test)
+  add_subdirectory(src/test)
 endif()
 
 # Link 3rd Party Libraries
-if(PLATFORM_TYPE STREQUAL "CUDA")
-    message("CUDA not yet implemented.")
-else()
-    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/OpenCL.lib)
-endif()
+target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/OpenCL.lib)
+target_link_libraries(${CMAKE_PROJECT_NAME} CUDA::cudart)
 
 # Configuration file
 file(COPY config.ini DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${CMAKE_CONFIGURATION_TYPES})

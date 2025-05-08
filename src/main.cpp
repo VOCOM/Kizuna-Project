@@ -3,6 +3,8 @@
 #include <sqlite_database.hpp>
 #include <webserver.hpp>
 
+#include "cuda_runtime.h"
+
 int main(int argc, char** argv) {
 	Kizuna kizuna;
 	kizuna.Initialize();

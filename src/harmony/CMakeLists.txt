@@ -16,6 +16,4 @@ target_link_libraries(${PROJECT_NAME} kizuna)
 target_link_libraries(${CMAKE_PROJECT_NAME} ${PROJECT_NAME})
 
 # Kernel Program files
-if(PLATFORM_TYPE STREQUAL "CL")
-    file(COPY cl/math.cl DESTINATION "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${CMAKE_CONFIGURATION_TYPES}/opencl")
-endif()
+file(COPY cl/math.cl DESTINATION "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${CMAKE_CONFIGURATION_TYPES}/opencl")

@@ -22,6 +22,7 @@ public:
 
 	// Shell Interface
 	virtual void Access();
+	static void CommandList();
 
 	WebServer();
 	virtual ~WebServer();
@@ -46,7 +47,7 @@ private:
 	// Requests
 	int requestBytes;
 	std::string method;
-	std::string param;
+	std::string resource;
 	std::string protocol;
 	std::string contentType;
 	char buffer[BUFFER_SIZE];

@@ -57,6 +57,7 @@ int ToInt(std::string input) {
 		return std::stoi(input);
 	} catch (...) {
 		std::cout << "Error converting " << input << " to integer.\n";
+		return 0;
 	}
 }
 std::string ToLower(std::string input) {

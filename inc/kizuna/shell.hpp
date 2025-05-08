@@ -10,7 +10,8 @@
 class InputBuffer {
 public:
 	size_t size() const { return buffer.size(); }
-	void clear() {
+	bool empty() const { return size() == 0; }
+	void flush() {
 		while (!buffer.empty()) buffer.pop();
 	}
 
@@ -35,7 +36,7 @@ public:
 		std::getline(is, line);
 		std::transform(line.begin(), line.end(), line.begin(), std::tolower);
 		auto list = Split(line);
-		buf.clear();
+		buf.flush();
 		for (std::string& p : list) buf << p;
 		return is;
 	}

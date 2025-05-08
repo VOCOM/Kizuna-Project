@@ -1,22 +1,22 @@
 #include <harmony.hpp>
 
 #include <algorithm>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 
 #include <kizuna/configuration.hpp>
-#include <neuralnet/layers.hpp>
-#include <neuralnet/neuralnet.hpp>
-#include <unsupervised.hpp>
 #include <utility/utils.hpp>
+
+// #include <neuralnet/layers.hpp>
+// #include <neuralnet/neuralnet.hpp>
+// #include <unsupervised.hpp>
 
 // Submodule Interface
 void Harmony::Info() {
-	std::cout << "Submodule " << Name() << "\n";
-	std::cout << "Status " << Status() << "\n";
-	int typeVal = cl::Device::getDefault().getInfo<CL_DEVICE_TYPE>();
 	std::string type("CPU");
+	int typeVal = cl::Device::getDefault().getInfo<CL_DEVICE_TYPE>();
 	switch (typeVal) {
 	case CL_DEVICE_TYPE_GPU:
 		type = "GPU";
@@ -28,8 +28,11 @@ void Harmony::Info() {
 		type = "Custom";
 		break;
 	}
-	std::cout << "Hardware " << type << "\n";
-	std::cout << "\n";
+
+	std::cout << "\n"
+						<< std::setw(10) << std::left << "Module" << Name() << "\n"
+						<< std::setw(10) << std::left << "Status" << Status() << "\n"
+						<< std::setw(10) << std::left << "Hardware" << type << "\n";
 }
 void Harmony::Start() {
 	if (status == Online) return;
@@ -70,45 +73,37 @@ void Harmony::Access() {
 
 	while (true) {
 		while (lock) std::this_thread::yield();
-
 		std::cout << "Completed Queue: " << completedQueue.size() << "\n";
-
 		std::cout << "Model: ";
 		if (currentModel) currentModel->Info();
 		else std::cout << "None\n";
-
 		std::cout << "Data:\n";
 		holdingData.Info(3);
 
 		// Input
 		std::cout << "Harmony: ";
 		std::cin >> buffer;
-		buffer >> command;
+		std::string command = buffer.pop();
 
 		// Kernel Commands
+		if (command == "clear") Clear();
+		if (command == "help") CommandList();
 		if (command == "exit") {
 			currentModel = nullptr;
 			return;
 		}
-		if (command == "clear") Clear();
 
 		// Model
 		if (command == "select") {
+			if (buffer.empty()) continue;
 			std::string type = buffer.pop();
-			if (type == "kmeans") {
-				if (buffer.size() < 2) continue;
-
-				auto model   = std::make_shared<KMeans>();
-				model->k     = ToInt(buffer.pop());
-				currentModel = model;
-			}
-			if (type == "net") NNOperations();
+			if (type == "net") CreateNeuralNet();
 		}
 		if (command == "deselect") currentModel = nullptr;
 
 		// Data
-		if (command == "load") holdingData.LoadCSV(buffer.pop());
-		if (command == "unload") holdingData.DropData();
+		// if (command == "load") holdingData.LoadCSV(buffer.pop());
+		// if (command == "unload") holdingData.DropData();
 
 		// Execute
 		if (command == "run" && currentModel) {
@@ -119,37 +114,54 @@ void Harmony::Access() {
 		}
 	}
 }
+void Harmony::CommandList() {
+	std::cout << "\nShell Commands\n"
+						<< std::setw(10) << std::left << "CLEAR" << "Clear terminal screen.\n"
+						<< std::setw(10) << std::left << "HELP" << "List commands.\n"
+						<< std::setw(10) << std::left << "EXIT" << "Shutdown application.\n"
+						<< "\nSubmodule Commands\n"
+						<< std::setw(10) << std::left << "SELECT" << "Select a model type.\n"
+						<< std::setw(10) << std::left << "DESELECT" << "Discards current model.\n"
+						<< std::setw(10) << std::left << "LOAD" << "Loads a CSV.\n"
+						<< std::setw(10) << std::left << "UNLOAD" << "Drops current data table.\n"
+						<< std::setw(10) << std::left << "RUN" << "Pushes current model to the execution stack.\n"
+						<< "\n";
+}
 
 // Neural Net Operations
-void Harmony::NNOperations() {
-	auto model = std::make_shared<NeuralNet>();
+void Harmony::CreateNeuralNet() {
+	// auto model = std::make_shared<NeuralNet>();
 
-	std::string command;
+	buffer.flush();
+
 	while (true) {
-		model->Info();
+		Clear();
+		// model->Info();
+
+		std::cout << "Neural Network: ";
 		std::cin >> buffer;
 		std::string command = buffer.pop();
 
-		if (command == "save") break;
 		if (command == "cancel") return;
-
-		if (command == "add") {
-			if (buffer.size() < 2) continue;
-			std::string type = buffer.pop();
-			int depth        = ToInt(buffer.pop());
-
-			std::unique_ptr<Layer> layer;
-
-			if (Contains(ToLower(typeid(ReLuLayer).name()), type))
-				layer = std::make_unique<ReLuLayer>(depth);
-
-			if (layer)
-				model->AddLayer(std::move(layer));
-		}
-		if (command == "del") {}
+		//		if (command == "save") break;
+		//
+		//		if (command == "add") {
+		//			if (buffer.size() < 2) continue;
+		//			std::string type = buffer.pop();
+		//			int depth        = ToInt(buffer.pop());
+		//
+		//			std::unique_ptr<Layer> layer;
+		//
+		//			if (Contains(ToLower(typeid(ReLuLayer).name()), type))
+		//				layer = std::make_unique<ReLuLayer>(depth);
+		//
+		//			if (layer)
+		//				model->AddLayer(std::move(layer));
+		//		}
+		//		if (command == "del") {}
 	}
 
-	currentModel = model;
+	//	currentModel = model;
 }
 
 // Constructors

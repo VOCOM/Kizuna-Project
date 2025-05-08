@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 
@@ -10,27 +11,22 @@
 #include <utility/utils.hpp>
 
 void Kizuna::Access() {
-	std::string buffer, command;
-	std::queue<std::string> params;
+	std::string command;
 
 	while (true) {
 		std::cout << "Kizuna: ";
-		std::getline(std::cin, buffer);
-		std::transform(buffer.begin(), buffer.end(), buffer.begin(), std::tolower);
-
-		params  = Enqueue(buffer);
-		command = params.front();
-		params.pop();
+		std::cin >> buffer;
+		buffer >> command;
 
 		// Module Commands
-		if (command == "start") ModuleCommand(params, &Module::Start);
-		if (command == "stop") ModuleCommand(params, &Module::Stop);
-		if (command == "restart") ModuleCommand(params, &Module::Restart);
-		if (command == "info") ModuleCommand(params, &Module::Info);
-		if (command == "link") ModuleCommand(params, &Module::Access);
+		if (command == "start") ModuleCommand(&Module::Start);
+		if (command == "stop") ModuleCommand(&Module::Stop);
+		if (command == "restart") ModuleCommand(&Module::Restart);
+		if (command == "info") ModuleCommand(&Module::Info);
+		if (command == "link") ModuleCommand(&Module::Access);
 
-		if (command == "help") HelpCommand(params);
-		if (command == "config") ConfigCommand(params);
+		if (command == "help") HelpCommand();
+		if (command == "config") ConfigCommand();
 		if (command == "clear") Clear();
 		if (command == "exit") return;
 	}
@@ -53,19 +49,28 @@ Kizuna::~Kizuna() {
 	Shutdown();
 }
 
-void Kizuna::HelpCommand(std::queue<std::string>& params) {}
-void Kizuna::ConfigCommand(std::queue<std::string>& params) {
+void Kizuna::HelpCommand() {
+	std::cout << "\nShell Commands\n"
+						<< std::setw(10) << std::left << "CONFIG" << "Display configuration.\n"
+						<< std::setw(10) << std::left << "CLEAR" << "Clear terminal screen.\n"
+						<< std::setw(10) << std::left << "HELP" << "List commands.\n"
+						<< std::setw(10) << std::left << "EXIT" << "Shutdown application.\n"
+						<< "\nSubmodule Commands\n"
+						<< std::setw(10) << std::left << "START" << "Startup a submodule.\n"
+						<< std::setw(10) << std::left << "STOP" << "Shutdown a submodule.\n"
+						<< std::setw(10) << std::left << "RESTART" << "Restart a submodule.\n"
+						<< std::setw(10) << std::left << "INFO" << "Display submodule information.\n"
+						<< std::setw(10) << std::left << "LINK" << "Enter submodule shell.\n"
+						<< "\n";
+}
+void Kizuna::ConfigCommand() {
 	std::string filter;
-	if (params.size() > 0) filter = params.front();
+	if (buffer.size() > 0) filter = buffer.pop();
 	Configuration::ListConfig(filter);
 }
-void Kizuna::ModuleCommand(std::queue<std::string>& params, void (Module::*function)()) {
-	std::string param;
-
-	if (params.empty()) return;
-	param = params.front();
-	params.pop();
-	std::transform(param.begin(), param.end(), param.begin(), std::tolower);
+void Kizuna::ModuleCommand(void (Module::*function)()) {
+	if (buffer.empty()) return;
+	std::string param = buffer.pop();
 
 	for (auto& module : Module::GetModules()) {
 		std::string name = module->Name();
@@ -73,4 +78,5 @@ void Kizuna::ModuleCommand(std::queue<std::string>& params, void (Module::*funct
 		if (param != "all" && param != name) continue;
 		std::bind(function, module)();
 	}
+	std::cout << "\n";
 }

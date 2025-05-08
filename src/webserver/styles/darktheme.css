@@ -1,0 +1,69 @@
+:root
+{
+  --light: #FFFFFF;
+  --dark: #000000;
+  /* Theme primary colors */
+  --primary-a0: #117ac6;
+  --primary-a10: #4388cd;
+  --primary-a20: #6196d3;
+  --primary-a30: #7aa4da;
+  --primary-a40: #92b3e0;
+  --primary-a50: #a8c1e6;
+  /* Theme surface colors */
+  --surface-a0: #121212;
+  --surface-a10: #282828;
+  --surface-a20: #3f3f3f;
+  --surface-a30: #575757;
+  --surface-a40: #717171;
+  --surface-a50: #8b8b8b;
+  /* Theme tonal surface colors */
+  --surface-tonal-a0: #234365;
+  --surface-tonal-a10: #3c5575;
+  --surface-tonal-a20: #546985;
+  --surface-tonal-a30: #6b7d96;
+  --surface-tonal-a40: #8391a7;
+  --surface-tonal-a50: #9ba6b8;
+}
+
+html
+{
+  color: var(--light);
+  background: var(--surface-tonal-a0);
+  font-family: Arial;
+}
+
+.navbar
+{
+  border-radius: 25px;
+  color: var(--light);
+  background-color: var(--surface-tonal-a10);
+  padding: 10px;
+  margin: 0px 0px 10px 0px;
+}
+
+  .navbar button
+  {
+    color: inherit;
+    background-color: inherit;
+    border: none;
+  }
+
+.widget
+{
+  border-radius: 10px;
+  color: var(--light);
+  background-color: var(--surface-tonal-a10);
+  padding: 10px;
+  margin: 3px;
+  float: left;
+}
+
+.status
+{
+  text-align: left;
+}
+
+.status td
+{
+  padding: 0px 10px 0px 0px;
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Web Socket Server</title>
+  <link rel="stylesheet" href="dark" />
+  <script src="htmx"></script>
+</head>
+
+<body>
+  <div class="navbar">
+    <button>KIZUNA</button>
+  </div>
+  <table class="widget status">
+    <thead>
+      <tr>
+        <th>Module</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Webserver</td>
+        <td hx-trigger="load, every 15s" hx-get="status/Webserver">Offline</td>
+      </tr>
+      <tr>
+        <td>Database</td>
+        <td hx-trigger="load, every 15s" hx-get="status/Database">Offline</td>
+      </tr>
+      <tr>
+        <td>Harmony</td>
+        <td hx-trigger="load, every 15s" hx-get="status/Harmony">Offline</td>
+      </tr>
+    </tbody>
+  </table>
+  <div id="webserver" class="widget">Webserver</div>
+  <div id="database" class="widget">Database</div>
+  <div id="harmony" class="widget">Harmony</div>
+</body>
+
+</html>

@@ -1,5 +1,6 @@
 #include <sqlite_database.hpp>
 
+#include <iomanip>
 #include <iostream>
 #include <queue>
 #include <sstream>
@@ -10,9 +11,10 @@
 
 // Submodule Interface
 void SQLiteDB::Info() {
-	std::cout << Name() << "\n"
-						<< "Status " << ToString(status) << "\n"
-						<< "Database: " << dbName << "\n\n";
+	std::cout << "\n"
+						<< std::setw(10) << std::left << "Module" << Name() << "\n"
+						<< std::setw(10) << std::left << "Status" << ToString(status) << "\n"
+						<< std::setw(10) << std::left << "Database" << dbName << "\n";
 }
 void SQLiteDB::Start() {
 	status = Online;
@@ -35,50 +37,52 @@ void SQLiteDB::LoadConfiguration() {
 
 // Shell Interface
 void SQLiteDB::Access() {
-	std::string buffer, command;
-	std::queue<std::string> params;
+	std::string command;
 
 	while (true) {
 		// Input
 		std::cout << "SQLiteDB: ";
-		std::getline(std::cin, buffer);
-		ReplaceToken(buffer, ',');
-		params  = Enqueue(buffer);
-		command = params.front();
-		params.pop();
+		std::cin >> buffer;
+		buffer >> command;
 
-		// Kernel Commands
-		if (command == "exit") return;
-		if (command == "clear") Clear();
-
-		if (command == "open")
-			if (!params.empty())
-				Open(params.front());
-
-		if (command == "query")
-			Query(buffer.substr(buffer.find(' ') + 1, buffer.size()));
+		// Shell Commands
+		if (command == "open" && !buffer.empty()) Open(buffer.pop());
+		// if (command == "query") Query(buffer.substr(buffer.find(' ') + 1, buffer.size()));
 
 		if (command == "add") {
-			if (params.size() < 3) continue;
-			command = params.front();
-			params.pop();
-			std::string tableName = params.front();
-			params.pop();
-			std::string keyName = params.front();
+			if (buffer.size() < 3) continue;
+			buffer >> command;
+			std::string tableName = buffer.pop();
+			std::string keyName   = buffer.pop();
 
 			if (command == "table") AddTable(tableName, keyName);
 			if (command == "col") AddColumn(tableName, keyName, Database::DOUBLE);
 			if (command == "row") {
 				std::vector<double> values;
-				while (!params.empty()) {
-					values.push_back(std::stod(params.front()));
-					params.pop();
+				while (!buffer.empty()) {
+					values.push_back(std::stod(buffer.pop()));
 				}
 				AddRow(tableName, values);
 			}
 		}
 		if (command == "drop") {}
+
+		if (command == "clear") Clear();
+		if (command == "help") CommandList();
+		if (command == "exit") return;
 	}
+}
+void SQLiteDB::CommandList() {
+	std::cout << "\nDatabase Commands\n"
+						<< std::setw(10) << std::left << "OPEN" << "Loads a SQL database file.\n"
+						<< std::setw(10) << std::left << "QUERY" << "Issues a SQL query.\n"
+						<< std::setw(10) << std::left << "ADD" << "Add a row|col|table.\n"
+						<< std::setw(10) << std::left << "DROP" << "Drops a table.\n"
+						<< "\nShell Commands\n"
+						<< std::setw(10) << std::left << "CLEAR" << "Clear terminal screen.\n"
+						<< std::setw(10) << std::left << "HELP" << "List commands.\n"
+						<< std::setw(10) << std::left << "EXIT" << "Exit submodule shell.\n"
+						<< "\n";
 }
 
 void SQLiteDB::Open(std::string database) {

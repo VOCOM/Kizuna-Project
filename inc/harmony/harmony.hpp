@@ -7,10 +7,11 @@
 
 #include <database/database_accessor.hpp>
 #include <errors/error_emitter.hpp>
-#include <kernels.hpp>
 #include <kizuna/module.hpp>
-#include <model.hpp>
 #include <utility/utils.hpp>
+
+#include <kernels.hpp>
+#include <model.hpp>
 
 class Harmony : public Module, public DatabaseAccessor {
 public:
@@ -25,9 +26,10 @@ public:
 
 	// Shell Interface
 	virtual void Access();
+	void CommandList();
 
-	// Neural Net Operations
-	void NNOperations();
+	// Neural Net
+	void CreateNeuralNet();
 
 	Harmony();
 	virtual ~Harmony();

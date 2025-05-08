@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 
@@ -13,9 +14,10 @@
 
 // Submodule Interface
 void WebServer::Info() {
-	std::cout << "Module " << Name() << "\n";
-	std::cout << "Address " << nodename << ':' << port << "\n";
-	std::cout << "Status " << Status() << "\n\n";
+	std::cout << "\n"
+						<< std::setw(10) << std::left << "Module" << Name() << "\n"
+						<< std::setw(10) << std::left << "Status" << Status() << "\n"
+						<< std::setw(10) << std::left << "Address" << nodename << ':' << port << "\n";
 }
 void WebServer::Start() {
 	if (status == Online) return;
@@ -81,23 +83,25 @@ void WebServer::LoadConfiguration() {
 	nodename = config["nodename"];
 }
 
-// Kernel Interface
+// Shell Interface
 void WebServer::Access() {
-	std::string buffer, command;
-	std::queue<std::string> params;
+	std::string command;
 
 	while (true) {
-		// Input
-		std::cout << "Harmony: ";
-		std::getline(std::cin, buffer);
-		std::transform(buffer.begin(), buffer.end(), buffer.begin(), std::tolower);
-		params  = Enqueue(buffer);
-		command = params.front();
-		params.pop();
+		std::cout << "Webserver: ";
+		std::cin >> Shell::buffer;
+		Shell::buffer >> command;
 
-		// Kernel Commands
+		// Shell Commands
+		if (command == "help") CommandList();
 		if (command == "exit") return;
 	}
+}
+void WebServer::CommandList() {
+	std::cout << "\nShell Commands\n"
+						<< std::setw(10) << std::left << "HELP" << "List commands.\n"
+						<< std::setw(10) << std::left << "EXIT" << "Exit submodule shell.\n"
+						<< "\n";
 }
 
 // Constructors
@@ -153,7 +157,7 @@ void WebServer::ProcessRequest() {
 	std::stringstream ss(request);
 
 	// Process HTML method
-	ss >> method >> param >> protocol;
+	ss >> method >> resource >> protocol;
 	contentType.clear();
 }
 void WebServer::ProcessResponse() {
@@ -175,22 +179,17 @@ void WebServer::ProcessResponse() {
 }
 std::string WebServer::BuildContent() {
 	std::stringstream contentStream;
+	auto resourceTree = Split(resource, '/');
 
-	param.erase(0, 1); // Remove starting '/'
-	if (param == "") param = "index.html";
-
-	int ext = param.find('.');
-	if (ext != std::string::npos) { // File request
-		std::string fileType(param.substr(ext, param.size() - ext));
-		if (fileType == ".html") contentType = "text/html";
-		if (fileType == ".css") contentType = "text/css";
-		if (fileType == ".svg") contentType = "image/svg+xml";
-
-		std::ifstream fileStream(param);
-		contentStream << fileStream.rdbuf();
-	} else { // Server command
-		auto paramList = Split(param, '/');
-		if (paramList.front() == "submodule") Responses::Status(contentStream);
+	for (size_t i = 0; i < resourceTree.size(); i++) {
+		if (resourceTree[i].empty()) contentStream << std::ifstream("html/index.html").rdbuf();
+		if (resourceTree[i] == "dark") contentStream << std::ifstream("styles/darktheme.css").rdbuf();
+		if (resourceTree[i] == "htmx") contentStream << std::ifstream("scripts/htmx.min.js").rdbuf();
+		if (resourceTree[i] == "status") {
+			if (i + 1 >= resourceTree.size()) continue;
+			auto& mod = Module::GetModule(resourceTree[i + 1]);
+			contentStream << (mod ? mod->Status() : "Offline");
+		}
 	}
 
 	return contentStream.str();

@@ -10,7 +10,7 @@
 
 class SQLiteDB : public Database {
 public: // Module Interface
-	virtual std::string Name() { return "SQLiteDB"; }
+	virtual std::string Name() { return "Database"; }
 	virtual std::string Status() { return ToString(status); }
 	virtual void Info();
 	virtual void Start();
@@ -20,6 +20,7 @@ public: // Module Interface
 
 public: // Shell Interface
 	virtual void Access();
+	void CommandList();
 
 public:
 	virtual void Open(std::string database);

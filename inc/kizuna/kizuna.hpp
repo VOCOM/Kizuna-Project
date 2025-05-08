@@ -22,9 +22,9 @@ public:
 	~Kizuna();
 
 private:
-	void HelpCommand(std::queue<std::string>& params);
-	void ConfigCommand(std::queue<std::string>& params);
-	void ModuleCommand(std::queue<std::string>& params, void (Module::*function)());
+	void HelpCommand();
+	void ConfigCommand();
+	void ModuleCommand(void (Module::*function)());
 
 private:
 	ErrorManager errorHandler;

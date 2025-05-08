@@ -1,13 +1,9 @@
 project(webserver VERSION 1.0)
 
-message(${CMAKE_GENERATOR})
-if(${CMAKE_GENERATOR} MATCHES "Visual Studio")
-  file(GLOB SRC_FILES *.cpp)
-  if(${CMAKE_VS_PLATFORM_NAME} MATCHES "x64")
-    add_compile_definitions(WIN64)
-  else()
-    add_compile_definitions(WIN32)  
-  endif()
+file(GLOB SRC_FILES *.cpp)
+  
+if(${WIN32})
+  add_compile_definitions(WIN32)  
 endif()
 
 # Compile Library
@@ -24,10 +20,11 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${CMAKE_PROJECT_NAME} ${PROJECT_NAME})
 
 # HTML Files
-file(GLOB RES_FILES index.html)
-file(GLOB CSS_FILES *.css)
-file(GLOB SVG_FILES svg/*.svg)
-file(COPY ${RES_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
-file(COPY ${CSS_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/styles)
-file(COPY ${SVG_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/svg)
-
+file(GLOB HTML_FILES html/*.html)
+file(GLOB JS_FILES scripts/*.js)
+file(GLOB CSS_FILES styles/*.css)
+file(GLOB SVG_FILES resources/*.svg)
+file(COPY ${HTML_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_CONFIGURATION_TYPES}/html)
+file(COPY ${JS_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_CONFIGURATION_TYPES}/scripts)
+file(COPY ${CSS_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_CONFIGURATION_TYPES}/styles)
+file(COPY ${SVG_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${CMAKE_CONFIGURATION_TYPES}/svg)

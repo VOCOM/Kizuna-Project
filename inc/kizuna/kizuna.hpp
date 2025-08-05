@@ -1,33 +1,26 @@
 #ifndef KIZUNA
 #define KIZUNA
 
-#include <queue>
-#include <string>
 #include <thread>
-#include <vector>
 
-#include <error_handler.hpp>
-#include <module.hpp>
-#include <shell.hpp>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_opengl.h>
 
-class Kizuna : public Shell {
-public: // Kernel Interface
-	virtual void Access();
-
+class Kizuna {
 public:
-	void Initialize();
-	void Shutdown();
-	void LoadModule(const std::shared_ptr<Module>& module);
-
+	Kizuna();
 	~Kizuna();
 
-private:
-	void HelpCommand();
-	void ConfigCommand();
-	void ModuleCommand(void (Module::*function)());
+	void Run();
+	void Quit();
 
 private:
-	ErrorManager errorHandler;
+	void EventLoop();
+
+private:
+	bool running       = false;
+	SDL_Window* window = nullptr;
+	SDL_GLContext glContext;
 };
 
 #endif /* KIZUNA */

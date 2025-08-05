@@ -7,4 +7,6 @@ target_include_directories(${PROJECT_NAME}
 )
 
 # Link to App
-target_link_libraries(${CMAKE_PROJECT_NAME} ${PROJECT_NAME})
+target_link_libraries(${CMAKE_PROJECT_NAME} 
+  PUBLIC ${PROJECT_NAME}
+)

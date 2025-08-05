@@ -1,82 +1,50 @@
 #include <kizuna.hpp>
 
-#include <algorithm>
-#include <functional>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-
-#include <configuration.hpp>
-#include <errors/error_emitter.hpp>
-#include <utility/utils.hpp>
-
-void Kizuna::Access() {
-	std::string command;
-
-	while (true) {
-		std::cout << "Kizuna: ";
-		std::cin >> buffer;
-		buffer >> command;
-
-		// Module Commands
-		if (command == "start") ModuleCommand(&Module::Start);
-		if (command == "stop") ModuleCommand(&Module::Stop);
-		if (command == "restart") ModuleCommand(&Module::Restart);
-		if (command == "info") ModuleCommand(&Module::Info);
-		if (command == "link") ModuleCommand(&Module::Access);
-
-		if (command == "help") HelpCommand();
-		if (command == "config") ConfigCommand();
-		if (command == "clear") Clear();
-		if (command == "exit") return;
+Kizuna::Kizuna() {
+	window = SDL_CreateWindow("Hello World", 1920, 1080, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	if (!window) {
+		SDL_Log("Couldn't create window and renderer: %s", SDL_GetError());
+		return;
 	}
+	glContext = SDL_GL_CreateContext(window);
 }
-
-void Kizuna::Initialize() {
-	Clear();
-	Configuration::LoadConfig();
-}
-void Kizuna::Shutdown() {
-	Module::Shutdown();
-}
-void Kizuna::LoadModule(const std::shared_ptr<Module>& module) {
-	module->LoadConfiguration();
-	module->Start();
-	module->RegisterModule(module);
-}
-
 Kizuna::~Kizuna() {
-	Shutdown();
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 }
 
-void Kizuna::HelpCommand() {
-	std::cout << "\nShell Commands\n"
-						<< std::setw(10) << std::left << "CONFIG" << "Display configuration.\n"
-						<< std::setw(10) << std::left << "CLEAR" << "Clear terminal screen.\n"
-						<< std::setw(10) << std::left << "HELP" << "List commands.\n"
-						<< std::setw(10) << std::left << "EXIT" << "Shutdown application.\n"
-						<< "\nSubmodule Commands\n"
-						<< std::setw(10) << std::left << "START" << "Startup a submodule.\n"
-						<< std::setw(10) << std::left << "STOP" << "Shutdown a submodule.\n"
-						<< std::setw(10) << std::left << "RESTART" << "Restart a submodule.\n"
-						<< std::setw(10) << std::left << "INFO" << "Display submodule information.\n"
-						<< std::setw(10) << std::left << "LINK" << "Enter submodule shell.\n"
-						<< "\n";
-}
-void Kizuna::ConfigCommand() {
-	std::string filter;
-	if (buffer.size() > 0) filter = buffer.pop();
-	Configuration::ListConfig(filter);
-}
-void Kizuna::ModuleCommand(void (Module::*function)()) {
-	if (buffer.empty()) return;
-	std::string param = buffer.pop();
+void Kizuna::Run() {
+	running = true;
 
-	for (auto& module : Module::GetModules()) {
-		std::string name = module->Name();
-		std::transform(name.begin(), name.end(), name.begin(), std::tolower);
-		if (param != "all" && param != name) continue;
-		std::bind(function, module)();
+	while (running) {
+		EventLoop();
+
+		glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		SDL_GL_SwapWindow(window);
+		SDL_Delay(16);
 	}
-	std::cout << "\n";
+}
+
+void Kizuna::Quit() {
+	SDL_Event quitEvent;
+	SDL_zero(quitEvent);
+	quitEvent.type = SDL_EVENT_QUIT;
+	SDL_PushEvent(&quitEvent);
+}
+
+void Kizuna::EventLoop() {
+	SDL_Event event;
+
+	while (SDL_PollEvent(&event)) {
+		switch (event.type) {
+		case SDL_EVENT_QUIT:
+			running = false;
+			break;
+
+		default:
+			break;
+		}
+	}
 }

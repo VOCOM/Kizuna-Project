@@ -1,9 +1,12 @@
 #include <configuration.hpp>
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+
+#include "utility/utils.hpp"
 
 std::map<std::string, std::map<std::string, std::string>> Configuration::Config;
 
@@ -25,12 +28,16 @@ void Configuration::ListConfig(std::string filter) {
 	}
 }
 void Configuration::LoadConfig() {
+	std::string configPath(std::filesystem::current_path().string());
+	configPath.append("\\config.ini");
+
 	std::string module, paramLine;
-	std::ifstream config("config.ini");
-	while (!config.eof()) {
-		config >> paramLine;
+	std::fstream config;
+
+	config.open(configPath, std::ios::in | std::ios::out);
+	while (std::getline(config, paramLine)) {
 		if (paramLine.empty()) continue;
-		std::transform(paramLine.begin(), paramLine.end(), paramLine.begin(), std::tolower);
+		paramLine = ToLower(paramLine);
 
 		// Comment Line
 		if (paramLine.front() == ';') continue;
@@ -50,4 +57,5 @@ void Configuration::LoadConfig() {
 		// Store Parameter
 		Configuration::Config[module][key] = value;
 	}
+	config.close();
 }
